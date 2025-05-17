@@ -1,0 +1,128 @@
+package com.marciliojr.pirangueiro.service;
+
+import com.marciliojr.pirangueiro.model.Receita;
+import com.marciliojr.pirangueiro.model.Conta;
+import com.marciliojr.pirangueiro.model.Categoria;
+import com.marciliojr.pirangueiro.repository.ReceitaRepository;
+import com.marciliojr.pirangueiro.dto.ReceitaDTO;
+import com.marciliojr.pirangueiro.dto.ContaDTO;
+import com.marciliojr.pirangueiro.dto.CategoriaDTO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class ReceitaService {
+
+    @Autowired
+    private ReceitaRepository receitaRepository;
+
+    @Autowired
+    private ContaService contaService;
+
+    public List<ReceitaDTO> listarTodas() {
+        return receitaRepository.findAllWithRelationships().stream()
+                .map(this::converterParaDTO)
+                .collect(Collectors.toList());
+    }
+
+    public ReceitaDTO buscarPorId(Long id) {
+        return receitaRepository.findByIdWithRelationships(id)
+                .map(this::converterParaDTO)
+                .orElseThrow(() -> new RuntimeException("Receita não encontrada"));
+    }
+
+    public List<ReceitaDTO> buscarPorDescricao(String descricao) {
+        return receitaRepository.findByDescricaoContainingWithRelationships(descricao).stream()
+                .map(this::converterParaDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<ReceitaDTO> buscarPorMesEAno(int mes, int ano) {
+        return receitaRepository.findByMesEAnoWithRelationships(mes, ano).stream()
+                .map(this::converterParaDTO)
+                .collect(Collectors.toList());
+    }
+
+    public ReceitaDTO salvar(ReceitaDTO receitaDTO) {
+        Receita receita = converterParaEntidade(receitaDTO);
+        return converterParaDTO(receitaRepository.save(receita));
+    }
+
+    public void excluir(Long id) {
+        receitaRepository.deleteById(id);
+    }
+
+    public Double buscarTotalReceitas() {
+        return receitaRepository.buscarTotalReceitas();
+    }
+
+    private ReceitaDTO converterParaDTO(Receita receita) {
+        ReceitaDTO dto = new ReceitaDTO();
+        dto.setId(receita.getId());
+        dto.setDescricao(receita.getDescricao());
+        dto.setValor(receita.getValor());
+        dto.setData(receita.getData());
+
+        // Converter e preencher ContaDTO 
+        if (receita.getConta() != null) {
+            dto.setConta(converterContaParaDTO(receita.getConta()));
+        }
+
+        // Converter e preencher CategoriaDTO
+        if (receita.getCategoria() != null) {
+            dto.setCategoria(converterCategoriaParaDTO(receita.getCategoria()));
+        }
+
+        dto.setAnexo(receita.getAnexo());
+        dto.setObservacao(receita.getObservacao());
+        return dto;
+    }
+
+    private ContaDTO converterContaParaDTO(Conta conta) {
+        ContaDTO contaDTO = new ContaDTO();
+        contaDTO.setId(conta.getId());
+        contaDTO.setNome(conta.getNome());
+        contaDTO.setTipo(conta.getTipo());
+        contaDTO.setImagemLogo(conta.getImagemLogo());
+        return contaDTO;
+    }
+
+    private CategoriaDTO converterCategoriaParaDTO(Categoria categoria) {
+        CategoriaDTO categoriaDTO = new CategoriaDTO();
+        categoriaDTO.setId(categoria.getId());
+        categoriaDTO.setNome(categoria.getNome());
+        categoriaDTO.setCor(categoria.getCor());
+        categoriaDTO.setImagemCategoria(categoria.getImagemCategoria());
+        categoriaDTO.setTipoReceita(categoria.getTipoReceita());
+        return categoriaDTO;
+    }
+
+    private Receita converterParaEntidade(ReceitaDTO dto) {
+        Receita receita = new Receita();
+        receita.setId(dto.getId());
+        receita.setDescricao(dto.getDescricao());
+        receita.setValor(dto.getValor());
+        receita.setData(dto.getData());
+
+        // Converter ContaDTO para Conta
+        if (dto.getConta() != null) {
+            Conta conta = new Conta();
+            conta.setId(dto.getConta().getId());
+            receita.setConta(conta);
+        }
+
+        // Converter CategoriaDTO para Categoria
+        if (dto.getCategoria() != null) {
+            Categoria categoria = new Categoria();
+            categoria.setId(dto.getCategoria().getId());
+            receita.setCategoria(categoria);
+        }
+
+        receita.setAnexo(dto.getAnexo());
+        receita.setObservacao(dto.getObservacao());
+        return receita;
+    }
+} 

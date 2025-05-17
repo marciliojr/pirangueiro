@@ -1,0 +1,1 @@
+ALTER TABLE conta MODIFY imagem_logo LONGBLOB; 
