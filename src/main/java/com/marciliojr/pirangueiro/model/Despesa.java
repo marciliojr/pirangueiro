@@ -35,4 +35,10 @@ public class Despesa {
     private String anexo;
 
     private String observacao;
+
+    @Column(nullable = true)
+    private Integer numeroParcela;
+
+    @Column(nullable = true)
+    private Integer totalParcelas;
 } 

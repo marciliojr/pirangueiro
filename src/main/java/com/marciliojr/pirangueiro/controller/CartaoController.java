@@ -58,4 +58,9 @@ public class CartaoController {
         cartaoService.excluir(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{id}/limite-disponivel")
+    public ResponseEntity<Double> consultarLimiteDisponivel(@PathVariable Long id) {
+        return ResponseEntity.ok(cartaoService.calcularLimiteDisponivel(id));
+    }
 } 

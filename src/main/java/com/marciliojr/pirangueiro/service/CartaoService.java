@@ -41,6 +41,13 @@ public class CartaoService {
         cartaoRepository.deleteById(id);
     }
 
+    public Double calcularLimiteDisponivel(Long id) {
+        Cartao cartao = cartaoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Cartão não encontrado"));
+        Double totalDespesas = cartaoRepository.calcularTotalDespesasPorCartao(id);
+        return cartao.getLimite() - totalDespesas;
+    }
+
     private CartaoDTO converterParaDTO(Cartao cartao) {
         CartaoDTO dto = new CartaoDTO();
         dto.setId(cartao.getId());

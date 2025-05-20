@@ -1,5 +1,6 @@
 package com.marciliojr.pirangueiro.service;
 
+import com.marciliojr.pirangueiro.exception.NegocioException;
 import com.marciliojr.pirangueiro.model.Despesa;
 import com.marciliojr.pirangueiro.model.Conta;
 import com.marciliojr.pirangueiro.model.Cartao;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import java.time.LocalDate;
@@ -54,9 +56,16 @@ public class DespesaService {
     }
 
     public DespesaDTO salvar(DespesaDTO despesaDTO) {
+
+        validarLimiteCartaoDeCredito(despesaDTO);
+
+        if (despesaDTO.getQuantidadeParcelas() != null && despesaDTO.getQuantidadeParcelas() > 1) {
+            return salvarDespesaParcelada(despesaDTO);
+        }
         Despesa despesa = converterParaEntidade(despesaDTO);
         return converterParaDTO(despesaRepository.save(despesa));
     }
+
 
     public void excluir(Long id) {
         despesaRepository.deleteById(id);
@@ -106,15 +115,57 @@ public class DespesaService {
     public List<DespesaDTO> buscarComFiltrosSemPaginar(String descricao, Integer mes, Integer ano) {
         List<Despesa> byFiltrosSemPaginar = despesaRepository.findByFiltrosSemPaginar(descricao, mes, ano);
 
-        List<DespesaDTO> collect = byFiltrosSemPaginar.stream()
+        return byFiltrosSemPaginar.stream()
                 .map(this::converterParaDTO)
                 .collect(Collectors.toList());
-
-        return collect;
     }
 
     public Double buscarTotalDespesas() {
         return despesaRepository.buscarTotalDespesas();
+    }
+
+    private void validarLimiteCartaoDeCredito(DespesaDTO despesaDTO) {
+        if (despesaDTO.getCartao() != null) {
+            Cartao cartao = cartaoRepository.findById(despesaDTO.getCartao().getId())
+                    .orElseThrow(() -> new NegocioException("Cartão não encontrado"));
+            Double totalCompras = cartaoRepository.calcularTotalDespesasPorCartao(despesaDTO.getCartao().getId());
+            if (totalCompras + despesaDTO.getValor() > cartao.getLimite()) {
+                throw new NegocioException("Limite do cartão excedido", "422", "O Limite atual do cartão é: "
+                        + cartao.getLimite()
+                        + " e o total atual de compras é: "
+                        + totalCompras + " e o total disponível para compras é: " + (cartao.getLimite() - totalCompras));
+            }
+        }
+    }
+
+    private DespesaDTO salvarDespesaParcelada(DespesaDTO despesaDTO) {
+        int quantidadeParcelas = despesaDTO.getQuantidadeParcelas();
+        double valorParcela = despesaDTO.getValor() / quantidadeParcelas;
+        LocalDate dataBase = despesaDTO.getData();
+        DespesaDTO primeiraParcela = null;
+
+        for (int i = 1; i <= quantidadeParcelas; i++) {
+            DespesaDTO parcela = new DespesaDTO();
+            parcela.setDescricao(despesaDTO.getDescricao() + " (" + i + "/" + quantidadeParcelas + ")");
+            parcela.setValor(valorParcela);
+            parcela.setData(dataBase.plusMonths(i - 1));
+            parcela.setConta(despesaDTO.getConta());
+            parcela.setCartao(despesaDTO.getCartao());
+            parcela.setCategoria(despesaDTO.getCategoria());
+            parcela.setAnexo(despesaDTO.getAnexo());
+            parcela.setObservacao(despesaDTO.getObservacao());
+            parcela.setNumeroParcela(i);
+            parcela.setTotalParcelas(quantidadeParcelas);
+
+            Despesa despesa = converterParaEntidade(parcela);
+            Despesa salva = despesaRepository.save(despesa);
+
+            if (i == 1) {
+                primeiraParcela = converterParaDTO(salva);
+            }
+        }
+
+        return primeiraParcela;
     }
 
     private DespesaDTO converterParaDTO(Despesa despesa) {
@@ -123,22 +174,24 @@ public class DespesaService {
         dto.setDescricao(despesa.getDescricao());
         dto.setValor(despesa.getValor());
         dto.setData(despesa.getData());
-        
+        dto.setNumeroParcela(despesa.getNumeroParcela());
+        dto.setTotalParcelas(despesa.getTotalParcelas());
+
         // Converter e preencher ContaDTO
         if (despesa.getConta() != null) {
             dto.setConta(converterContaParaDTO(despesa.getConta()));
         }
-        
+
         // Converter e preencher CartaoDTO
         if (despesa.getCartao() != null) {
             dto.setCartao(converterCartaoParaDTO(despesa.getCartao()));
         }
-        
+
         // Converter e preencher CategoriaDTO
         if (despesa.getCategoria() != null) {
             dto.setCategoria(converterCategoriaParaDTO(despesa.getCategoria()));
         }
-        
+
         dto.setAnexo(despesa.getAnexo());
         dto.setObservacao(despesa.getObservacao());
         return dto;
@@ -179,28 +232,30 @@ public class DespesaService {
         despesa.setDescricao(dto.getDescricao());
         despesa.setValor(dto.getValor());
         despesa.setData(dto.getData());
-        
+        despesa.setNumeroParcela(dto.getNumeroParcela());
+        despesa.setTotalParcelas(dto.getTotalParcelas());
+
         // Converter ContaDTO para Conta
         if (dto.getConta() != null) {
             Conta conta = new Conta();
             conta.setId(dto.getConta().getId());
             despesa.setConta(conta);
         }
-        
+
         // Converter CartaoDTO para Cartao
         if (dto.getCartao() != null) {
             Cartao cartao = new Cartao();
             cartao.setId(dto.getCartao().getId());
             despesa.setCartao(cartao);
         }
-        
+
         // Converter CategoriaDTO para Categoria
         if (dto.getCategoria() != null) {
             Categoria categoria = new Categoria();
             categoria.setId(dto.getCategoria().getId());
             despesa.setCategoria(categoria);
         }
-        
+
         despesa.setAnexo(dto.getAnexo());
         despesa.setObservacao(dto.getObservacao());
         return despesa;

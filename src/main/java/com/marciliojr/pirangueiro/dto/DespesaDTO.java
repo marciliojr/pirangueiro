@@ -14,4 +14,7 @@ public class DespesaDTO {
     private CategoriaDTO categoria;
     private String anexo;
     private String observacao;
+    private Integer quantidadeParcelas;
+    private Integer numeroParcela;
+    private Integer totalParcelas;
 } 
