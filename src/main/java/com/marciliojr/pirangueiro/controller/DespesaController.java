@@ -53,16 +53,6 @@ public class DespesaController {
         return despesaDTOS;
     }
 
-    private String limparString(String texto) {
-        if (texto == null) {
-            return null;
-        }
-        // Remove caracteres de formatação como \t, \n, \r, \f e espaços extras
-        return texto.replaceAll("[\\t\\n\\r\\f]+", " ")  // substitui caracteres de formatação por espaço
-                   .replaceAll("\\s+", " ")              // substitui múltiplos espaços por um único espaço
-                   .trim();                              // remove espaços do início e fim
-    }
-
     @GetMapping("/mes/{mes}/ano/{ano}")
     public List<DespesaDTO> buscarPorMesEAno(@PathVariable int mes, @PathVariable int ano) {
         return despesaService.buscarPorMesEAno(mes, ano);
@@ -100,6 +90,7 @@ public class DespesaController {
 
     @PostMapping
     public ResponseEntity<DespesaDTO> salvar(@RequestBody DespesaDTO despesaDTO) {
+        despesaDTO.setPago(Boolean.FALSE);
         return ResponseEntity.ok(despesaService.salvar(despesaDTO));
     }
 
@@ -118,5 +109,21 @@ public class DespesaController {
     @GetMapping("/total")
     public ResponseEntity<Double> buscarTotalDespesas() {
         return ResponseEntity.ok(despesaService.buscarTotalDespesas());
+    }
+
+    @PutMapping("/despesas/{id}/pagar")
+    public ResponseEntity<Void> marcarComoPaga(@PathVariable Long id) {
+        despesaService.marcarDespesaComoPaga(id);
+        return ResponseEntity.ok().build();
+    }
+
+    private String limparString(String texto) {
+        if (texto == null) {
+            return null;
+        }
+        // Remove caracteres de formatação como \t, \n, \r, \f e espaços extras
+        return texto.replaceAll("[\\t\\n\\r\\f]+", " ")  // substitui caracteres de formatação por espaço
+                .replaceAll("\\s+", " ")              // substitui múltiplos espaços por um único espaço
+                .trim();                              // remove espaços do início e fim
     }
 } 

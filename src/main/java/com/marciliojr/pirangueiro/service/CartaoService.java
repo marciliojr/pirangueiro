@@ -1,10 +1,12 @@
 package com.marciliojr.pirangueiro.service;
 
+import com.marciliojr.pirangueiro.dto.CartaoDTO;
+import com.marciliojr.pirangueiro.exception.NegocioException;
 import com.marciliojr.pirangueiro.model.Cartao;
 import com.marciliojr.pirangueiro.repository.CartaoRepository;
-import com.marciliojr.pirangueiro.dto.CartaoDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,6 +15,9 @@ public class CartaoService {
 
     @Autowired
     private CartaoRepository cartaoRepository;
+
+    @Autowired
+    private DespesaService despesaService;
 
     public List<CartaoDTO> listarTodos() {
         return cartaoRepository.findAll().stream()
@@ -38,7 +43,15 @@ public class CartaoService {
     }
 
     public void excluir(Long id) {
+        validarExclusao(id);
         cartaoRepository.deleteById(id);
+    }
+
+    public void validarExclusao(Long id) {
+        boolean existe = cartaoRepository.existeDespesasPorCartao(id);
+        if (existe) {
+            throw new NegocioException("Erro ao Excluir", "422", "Cartão não pode ser excluído, pois possui despesas associadas.");
+        }
     }
 
     public Double calcularLimiteDisponivel(Long id) {

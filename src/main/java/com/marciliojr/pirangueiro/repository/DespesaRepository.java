@@ -116,6 +116,8 @@ public interface DespesaRepository extends JpaRepository<Despesa, Long> {
             @Param("ano") Integer ano,
             Pageable pageable);
 
-    @Query("SELECT COALESCE(SUM(d.valor), 0) FROM Despesa d")
+    @Query("SELECT COALESCE(SUM(d.valor), 0) FROM Despesa d WHERE d.pago = false")
     Double buscarTotalDespesas();
+
+    Optional<Despesa> findByIdAndPagoTrue(Long id);
 } 

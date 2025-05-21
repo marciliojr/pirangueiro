@@ -41,4 +41,7 @@ public class Despesa {
 
     @Column(nullable = true)
     private Integer totalParcelas;
+
+    @Column(nullable = true)
+    private Boolean pago;
 } 

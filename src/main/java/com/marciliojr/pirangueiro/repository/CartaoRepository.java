@@ -9,6 +9,10 @@ import java.util.List;
 public interface CartaoRepository extends JpaRepository<Cartao, Long> {
     List<Cartao> findByNomeContainingIgnoreCase(String nome);
     
-    @Query("SELECT COALESCE(SUM(d.valor), 0) FROM Despesa d WHERE d.cartao.id = :cartaoId")
+    @Query("SELECT COALESCE(SUM(d.valor), 0) FROM Despesa d WHERE d.cartao.id = :cartaoId AND d.pago = false")
     Double calcularTotalDespesasPorCartao(@Param("cartaoId") Long cartaoId);
+
+    @Query("SELECT COUNT(d) > 0 FROM Despesa d WHERE d.cartao.id = :cartaoId")
+    boolean existeDespesasPorCartao(@Param("cartaoId") Long cartaoId);
+
 } 

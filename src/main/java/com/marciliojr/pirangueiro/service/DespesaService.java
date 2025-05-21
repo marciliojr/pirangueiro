@@ -124,6 +124,13 @@ public class DespesaService {
         return despesaRepository.buscarTotalDespesas();
     }
 
+    public void marcarDespesaComoPaga(Long despesaId) {
+        Despesa despesa = despesaRepository.findById(despesaId)
+                .orElseThrow(() -> new NegocioException("Despesa não encontrada com ID: " + despesaId));
+        despesa.setPago(true);
+        despesaRepository.save(despesa);
+    }
+
     private void validarLimiteCartaoDeCredito(DespesaDTO despesaDTO) {
         if (despesaDTO.getCartao() != null) {
             Cartao cartao = cartaoRepository.findById(despesaDTO.getCartao().getId())
@@ -154,6 +161,7 @@ public class DespesaService {
             parcela.setCategoria(despesaDTO.getCategoria());
             parcela.setAnexo(despesaDTO.getAnexo());
             parcela.setObservacao(despesaDTO.getObservacao());
+            parcela.setPago(despesaDTO.getPago());
             parcela.setNumeroParcela(i);
             parcela.setTotalParcelas(quantidadeParcelas);
 
@@ -176,6 +184,7 @@ public class DespesaService {
         dto.setData(despesa.getData());
         dto.setNumeroParcela(despesa.getNumeroParcela());
         dto.setTotalParcelas(despesa.getTotalParcelas());
+        dto.setPago(despesa.getPago());
 
         // Converter e preencher ContaDTO
         if (despesa.getConta() != null) {
@@ -234,6 +243,7 @@ public class DespesaService {
         despesa.setData(dto.getData());
         despesa.setNumeroParcela(dto.getNumeroParcela());
         despesa.setTotalParcelas(dto.getTotalParcelas());
+        despesa.setPago(dto.getPago());
 
         // Converter ContaDTO para Conta
         if (dto.getConta() != null) {
