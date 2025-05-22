@@ -6,5 +6,9 @@ package com.marciliojr.pirangueiro.model;
 public enum TipoConta {
     CORRENTE,
     SALARIO,
-    DIGITAL
+    DIGITAL,
+    POUPANCA,
+    INVESTIMENTO,
+    CARTEIRA,
+    OUTRO
 } 

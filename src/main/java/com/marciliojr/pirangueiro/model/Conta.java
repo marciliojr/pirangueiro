@@ -16,6 +16,7 @@ public class Conta {
     private String nome;
 
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(20)")
     private TipoConta tipo;
 
     @Lob

@@ -41,8 +41,7 @@ public class CartaoController {
 
     @PutMapping("/{id}")
     public ResponseEntity<CartaoDTO> atualizar(@PathVariable Long id, @RequestBody CartaoDTO cartaoDTO) {
-        cartaoDTO.setId(id);
-        return ResponseEntity.ok(cartaoService.salvar(cartaoDTO));
+        return ResponseEntity.ok(cartaoService.atualizar(cartaoDTO));
     }
 
     @GetMapping("/{id}/despesas/fatura")
@@ -54,8 +53,8 @@ public class CartaoController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable Long id) {
-        cartaoService.excluir(id);
+    public ResponseEntity<Void> excluir(@PathVariable Long id, @RequestParam(required = false) boolean manterDespesas) {
+        cartaoService.excluir(id, manterDespesas);
         return ResponseEntity.noContent().build();
     }
 

@@ -66,6 +66,14 @@ public interface DespesaRepository extends JpaRepository<Despesa, Long> {
             @Param("dataFim") LocalDate dataFim);
 
     @Query("SELECT d FROM Despesa d " +
+            "LEFT JOIN FETCH d.conta " +
+            "LEFT JOIN FETCH d.categoria " +
+            "LEFT JOIN FETCH d.cartao " +
+            "WHERE d.cartao.id = :cartaoId ")
+    List<Despesa> buscarDespesasPorCartao(
+            @Param("cartaoId") Long cartaoId);
+
+    @Query("SELECT d FROM Despesa d " +
            "LEFT JOIN FETCH d.conta " +
            "LEFT JOIN FETCH d.categoria " +
            "LEFT JOIN FETCH d.cartao " +

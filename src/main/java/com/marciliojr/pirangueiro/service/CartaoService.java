@@ -3,11 +3,14 @@ package com.marciliojr.pirangueiro.service;
 import com.marciliojr.pirangueiro.dto.CartaoDTO;
 import com.marciliojr.pirangueiro.exception.NegocioException;
 import com.marciliojr.pirangueiro.model.Cartao;
+import com.marciliojr.pirangueiro.model.Despesa;
 import com.marciliojr.pirangueiro.repository.CartaoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,21 +23,15 @@ public class CartaoService {
     private DespesaService despesaService;
 
     public List<CartaoDTO> listarTodos() {
-        return cartaoRepository.findAll().stream()
-                .map(this::converterParaDTO)
-                .collect(Collectors.toList());
+        return cartaoRepository.findAll().stream().map(this::converterParaDTO).collect(Collectors.toList());
     }
 
     public CartaoDTO buscarPorId(Long id) {
-        return cartaoRepository.findById(id)
-                .map(this::converterParaDTO)
-                .orElseThrow(() -> new RuntimeException("Cartão não encontrado"));
+        return cartaoRepository.findById(id).map(this::converterParaDTO).orElseThrow(() -> new RuntimeException("Cartão não encontrado"));
     }
 
     public List<CartaoDTO> buscarPorNome(String nome) {
-        return cartaoRepository.findByNomeContainingIgnoreCase(nome).stream()
-                .map(this::converterParaDTO)
-                .collect(Collectors.toList());
+        return cartaoRepository.findByNomeContainingIgnoreCase(nome).stream().map(this::converterParaDTO).collect(Collectors.toList());
     }
 
     public CartaoDTO salvar(CartaoDTO cartaoDTO) {
@@ -42,8 +39,51 @@ public class CartaoService {
         return converterParaDTO(cartaoRepository.save(cartao));
     }
 
-    public void excluir(Long id) {
-        validarExclusao(id);
+    public CartaoDTO atualizar(CartaoDTO cartaoDTO) {
+        Cartao cartao = converterParaEntidade(cartaoDTO);
+        Double limiteUsado = calcularLimiteUsado(cartao.getId());
+
+        if (cartao.getLimite() == null || cartao.getLimite() <= 0) {
+            throw new NegocioException("Erro ao Atualizar", "422", "Limite do cartão deve ser maior que zero.");
+        }
+
+        if (cartao.getLimite() < limiteUsado) {
+            throw new NegocioException("Erro ao Atualizar", "422", "Limite do cartão não pode ser menor que o limite usado.");
+        }
+
+        return converterParaDTO(cartaoRepository.save(cartao));
+    }
+
+    public void excluir(Long id, boolean manterDespesas) {
+        if (manterDespesas) {
+            List<Despesa> despesas = despesaService.buscarDespesasPorCartao(id);
+            String nomeCartao = despesas.stream()
+                    .map(Despesa::getCartao)
+                    .filter(Objects::nonNull)
+                    .map(Cartao::getNome)
+                    .findFirst()
+                    .orElse("");
+
+            double valorTotalDespesas = despesas.stream()
+                    .mapToDouble(Despesa::getValor)
+                    .sum();
+
+            LocalDate dataCompra = despesas.stream()
+                    .map(Despesa::getData)
+                    .findFirst()
+                    .orElse(null);
+
+            despesas.forEach(despesa -> despesaService.excluir(despesa.getId()));
+
+            Despesa despesaHistorica = new Despesa();
+            despesaHistorica.setDescricao("Registro historico das despesas do cartão " + nomeCartao);
+            despesaHistorica.setValor(valorTotalDespesas);
+            despesaHistorica.setObservacao("Despesa para mostrar que o cartão foi excluído e manter o historico");
+            despesaHistorica.setData(dataCompra);
+            despesaService.salvar(despesaHistorica);
+        } else {
+            validarExclusao(id);
+        }
         cartaoRepository.deleteById(id);
     }
 
@@ -55,10 +95,14 @@ public class CartaoService {
     }
 
     public Double calcularLimiteDisponivel(Long id) {
-        Cartao cartao = cartaoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cartão não encontrado"));
+        Cartao cartao = cartaoRepository.findById(id).orElseThrow(() -> new RuntimeException("Cartão não encontrado"));
         Double totalDespesas = cartaoRepository.calcularTotalDespesasPorCartao(id);
         return cartao.getLimite() - totalDespesas;
+    }
+
+    public Double calcularLimiteUsado(Long id) {
+        Cartao cartao = cartaoRepository.findById(id).orElseThrow(() -> new RuntimeException("Cartão não encontrado"));
+        return cartaoRepository.calcularTotalDespesasPorCartao(id);
     }
 
     private CartaoDTO converterParaDTO(Cartao cartao) {

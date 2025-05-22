@@ -1,16 +1,16 @@
 package com.marciliojr.pirangueiro.service;
 
-import com.marciliojr.pirangueiro.exception.NegocioException;
-import com.marciliojr.pirangueiro.model.Despesa;
-import com.marciliojr.pirangueiro.model.Conta;
-import com.marciliojr.pirangueiro.model.Cartao;
-import com.marciliojr.pirangueiro.model.Categoria;
-import com.marciliojr.pirangueiro.repository.DespesaRepository;
-import com.marciliojr.pirangueiro.repository.CartaoRepository;
-import com.marciliojr.pirangueiro.dto.DespesaDTO;
-import com.marciliojr.pirangueiro.dto.ContaDTO;
 import com.marciliojr.pirangueiro.dto.CartaoDTO;
 import com.marciliojr.pirangueiro.dto.CategoriaDTO;
+import com.marciliojr.pirangueiro.dto.ContaDTO;
+import com.marciliojr.pirangueiro.dto.DespesaDTO;
+import com.marciliojr.pirangueiro.exception.NegocioException;
+import com.marciliojr.pirangueiro.model.Cartao;
+import com.marciliojr.pirangueiro.model.Categoria;
+import com.marciliojr.pirangueiro.model.Conta;
+import com.marciliojr.pirangueiro.model.Despesa;
+import com.marciliojr.pirangueiro.repository.CartaoRepository;
+import com.marciliojr.pirangueiro.repository.DespesaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,9 +18,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.time.LocalDate;
 
 @Service
 public class DespesaService {
@@ -64,6 +64,10 @@ public class DespesaService {
         }
         Despesa despesa = converterParaEntidade(despesaDTO);
         return converterParaDTO(despesaRepository.save(despesa));
+    }
+
+    public void salvar(Despesa despesa) {
+        despesaRepository.save(despesa);
     }
 
 
@@ -120,6 +124,11 @@ public class DespesaService {
                 .collect(Collectors.toList());
     }
 
+    public List<Despesa> buscarDespesasPorCartao(
+            Long cartaoId) {
+        return despesaRepository.buscarDespesasPorCartao(cartaoId);
+    }
+
     public Double buscarTotalDespesas() {
         return despesaRepository.buscarTotalDespesas();
     }
@@ -133,17 +142,42 @@ public class DespesaService {
 
     private void validarLimiteCartaoDeCredito(DespesaDTO despesaDTO) {
         if (despesaDTO.getCartao() != null) {
-            Cartao cartao = cartaoRepository.findById(despesaDTO.getCartao().getId())
+            Long cartaoId = despesaDTO.getCartao().getId();
+
+            Cartao cartao = cartaoRepository.findById(cartaoId)
                     .orElseThrow(() -> new NegocioException("Cartão não encontrado"));
-            Double totalCompras = cartaoRepository.calcularTotalDespesasPorCartao(despesaDTO.getCartao().getId());
+
+            Double totalCompras = cartaoRepository.calcularTotalDespesasPorCartao(cartaoId);
+
+            if (despesaDTO.getId() != null) {
+                Despesa despesaExistente = despesaRepository.findById(despesaDTO.getId())
+                        .orElseThrow(() -> new NegocioException("Despesa não encontrada para edição"));
+
+                Long cartaoIdDespesaExistente = despesaExistente.getCartao() != null
+                        ? despesaExistente.getCartao().getId()
+                        : null;
+
+                // Subtrai valor antigo apenas se for o mesmo cartão e despesa ainda estiver pendente
+                if (cartaoId.equals(cartaoIdDespesaExistente) && !despesaExistente.getPago()) {
+                    totalCompras -= despesaExistente.getValor();
+                }
+            }
+
             if (totalCompras + despesaDTO.getValor() > cartao.getLimite()) {
-                throw new NegocioException("Limite do cartão excedido", "422", "O Limite atual do cartão é: "
-                        + cartao.getLimite()
-                        + " e o total atual de compras é: "
-                        + totalCompras + " e o total disponível para compras é: " + (cartao.getLimite() - totalCompras));
+                throw new NegocioException(
+                        "Limite do cartão excedido",
+                        "422",
+                        String.format(
+                                "O Limite atual do cartão é: %.2f, o total atual de compras é: %.2f, e o total disponível para compras é: %.2f",
+                                cartao.getLimite(),
+                                totalCompras,
+                                cartao.getLimite() - totalCompras
+                        )
+                );
             }
         }
     }
+
 
     private DespesaDTO salvarDespesaParcelada(DespesaDTO despesaDTO) {
         int quantidadeParcelas = despesaDTO.getQuantidadeParcelas();
