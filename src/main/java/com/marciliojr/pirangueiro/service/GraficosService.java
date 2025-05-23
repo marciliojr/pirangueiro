@@ -53,23 +53,6 @@ public class GraficosService {
         return dto;
     }
 
-    public GraficoVariacaoMensalDTO buscarVariacaoMensalDespesas(Integer ano) {
-        List<Double> totaisMensais = graficosRepository.buscarDespesasMensaisPorAno(ano);
-        List<TotalMensalDTO> dadosMensais = new ArrayList<>();
-
-        for (int i = 0; i < totaisMensais.size(); i++) {
-            TotalMensalDTO totalMensal = new TotalMensalDTO();
-            totalMensal.setMes(i + 1);
-            totalMensal.setTotal(totaisMensais.get(i));
-            dadosMensais.add(totalMensal);
-        }
-
-        GraficoVariacaoMensalDTO dto = new GraficoVariacaoMensalDTO();
-        dto.setAno(ano);
-        dto.setTotaisMensais(dadosMensais);
-
-        return dto;
-    }
 
     private List<DadosGraficoDTO> converterParaDadosGrafico(List<Object[]> dados, Double total) {
         List<DadosGraficoDTO> resultado = new ArrayList<>();

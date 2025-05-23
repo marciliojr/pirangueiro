@@ -47,13 +47,6 @@ public interface GraficosRepository extends JpaRepository<Grafico, Long> {
             @Param("mes") Integer mes,
             @Param("ano") Integer ano);
 
-    @Query("SELECT COALESCE(SUM(d.valor), 0) " +
-           "FROM Despesa d " +
-           "WHERE YEAR(d.data) = :ano " +
-           "GROUP BY MONTH(d.data) " +
-           "ORDER BY MONTH(d.data)")
-    List<Double> buscarDespesasMensaisPorAno(@Param("ano") Integer ano);
-
     @Query("SELECT COALESCE(SUM(r.valor), 0) FROM Receita r")
     Double buscarTotalReceitas();
 

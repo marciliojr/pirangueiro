@@ -25,11 +25,6 @@ public class GraficosController {
         return ResponseEntity.ok(graficosService.buscarDadosGraficoReceitasDespesas(mes, ano));
     }
 
-    @GetMapping("/variacao-mensal-despesas")
-    public ResponseEntity<GraficoVariacaoMensalDTO> buscarVariacaoMensalDespesas(
-            @RequestParam Integer ano) {
-        return ResponseEntity.ok(graficosService.buscarVariacaoMensalDespesas(ano));
-    }
 
     @GetMapping("/dashboard-financeiro")
     public ResponseEntity<DashboardFinanceiroDTO> getDashboardFinanceiro(
