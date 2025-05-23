@@ -3,6 +3,8 @@ package com.marciliojr.pirangueiro.controller;
 import com.marciliojr.pirangueiro.dto.DashboardFinanceiroDTO;
 import com.marciliojr.pirangueiro.dto.GraficoReceitasDespesasDTO;
 import com.marciliojr.pirangueiro.dto.GraficoVariacaoMensalDTO;
+import com.marciliojr.pirangueiro.dto.GraficoDespesasCartaoDTO;
+import com.marciliojr.pirangueiro.dto.GraficoSazonalidadeGastosDTO;
 import com.marciliojr.pirangueiro.service.GraficosService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -34,5 +36,16 @@ public class GraficosController {
             @RequestParam Integer mes,
             @RequestParam Integer ano) {
         return ResponseEntity.ok(graficosService.getDashboardFinanceiro(mes, ano));
+    }
+
+    @GetMapping("/despesas-por-cartao")
+    public ResponseEntity<GraficoDespesasCartaoDTO> buscarDespesasPorCartao(
+            @RequestParam(defaultValue = "12") Integer mesesAtras) {
+        return ResponseEntity.ok(graficosService.buscarDespesasPorCartaoAoLongoDoTempo(mesesAtras));
+    }
+
+    @GetMapping("/sazonalidade-gastos")
+    public ResponseEntity<GraficoSazonalidadeGastosDTO> buscarSazonalidadeGastos() {
+        return ResponseEntity.ok(graficosService.buscarSazonalidadeGastos());
     }
 } 

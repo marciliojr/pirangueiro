@@ -19,6 +19,7 @@ public interface GraficosRepository extends JpaRepository<Grafico, Long> {
             @Param("mes") Integer mes,
             @Param("ano") Integer ano);
 
+
     @Query("SELECT new map(c.nome as categoria, SUM(r.valor) as valor) " +
            "FROM Receita r " +
            "JOIN r.categoria c " +
@@ -58,4 +59,24 @@ public interface GraficosRepository extends JpaRepository<Grafico, Long> {
 
     @Query("SELECT COALESCE(SUM(d.valor), 0) FROM Despesa d")
     Double buscarTotalDespesas();
+
+    @Query("SELECT new map(CONCAT(MONTH(d.data), '/', YEAR(d.data)) as mes, " +
+           "c.nome as cartao, " +
+           "SUM(d.valor) as valor) " +
+           "FROM Despesa d " +
+           "JOIN d.cartao c " +
+           "WHERE d.data BETWEEN :dataInicio AND :dataFim " +
+           "GROUP BY YEAR(d.data), MONTH(d.data), c.nome " +
+           "ORDER BY YEAR(d.data), MONTH(d.data), c.nome")
+    List<Object[]> buscarDespesasPorCartaoNoPeriodo(
+            @Param("dataInicio") java.time.LocalDate dataInicio,
+            @Param("dataFim") java.time.LocalDate dataFim);
+
+    @Query("SELECT new map(MONTH(d.data) as mes, " +
+           "AVG(d.valor) as mediaGastos, " +
+           "COUNT(DISTINCT YEAR(d.data)) as totalAnos) " +
+           "FROM Despesa d " +
+           "GROUP BY MONTH(d.data) " +
+           "ORDER BY MONTH(d.data)")
+    List<Object[]> buscarMediaHistoricaGastosPorMes();
 } 
