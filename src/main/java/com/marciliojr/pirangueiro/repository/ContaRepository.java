@@ -20,4 +20,11 @@ public interface ContaRepository extends JpaRepository<Conta, Long> {
     
     @Query("SELECT COALESCE(SUM(d.valor), 0) FROM Despesa d WHERE d.conta.id = :contaId")
     Double calcularTotalDespesasPorConta(@Param("contaId") Long contaId);
+
+    @Query("SELECT COUNT(d) > 0 FROM Despesa d WHERE d.conta.id = :contaId")
+    boolean existeDespesaAssociadaConta(@Param("contaId") Long contaId);
+
+    @Query("SELECT COUNT(r) > 0 FROM Receita r WHERE r.conta.id = :contaId")
+    boolean existeReceitaAssociadaConta(@Param("contaId") Long contaId);
+
 } 

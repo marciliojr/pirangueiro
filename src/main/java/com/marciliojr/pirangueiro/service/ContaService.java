@@ -1,15 +1,16 @@
 package com.marciliojr.pirangueiro.service;
 
-import com.marciliojr.pirangueiro.model.Conta;
-import com.marciliojr.pirangueiro.repository.ContaRepository;
 import com.marciliojr.pirangueiro.dto.ContaDTO;
 import com.marciliojr.pirangueiro.dto.SaldoContaDTO;
+import com.marciliojr.pirangueiro.exception.NegocioException;
+import com.marciliojr.pirangueiro.model.Conta;
+import com.marciliojr.pirangueiro.repository.ContaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 import java.util.stream.Collectors;
-import java.time.LocalDate;
 
 @Service
 public class ContaService {
@@ -46,6 +47,15 @@ public class ContaService {
     }
 
     public void excluir(Long id) {
+
+        if (existeReceitaAssociadaConta(id)) {
+            throw new NegocioException("Não é possível excluir a conta, pois existem receitas associadas a ela.");
+        }
+
+        if (existeDespesaAssociadaConta(id)) {
+            throw new NegocioException("Não é possível excluir a conta, pois existem despesas associadas a ela.");
+        }
+
         contaRepository.deleteById(id);
     }
 
@@ -78,6 +88,14 @@ public class ContaService {
         saldoDTO.setAno(ano);
 
         return saldoDTO;
+    }
+
+    public boolean existeDespesaAssociadaConta(Long contaId) {
+        return contaRepository.existeDespesaAssociadaConta(contaId);
+    }
+
+    public boolean existeReceitaAssociadaConta(Long contaId) {
+        return contaRepository.existeReceitaAssociadaConta(contaId);
     }
 
     private ContaDTO converterParaDTO(Conta conta) {
