@@ -55,7 +55,6 @@ public class CategoriaService {
         dto.setId(categoria.getId());
         dto.setNome(categoria.getNome());
         dto.setCor(categoria.getCor());
-        dto.setImagemCategoria(categoria.getImagemCategoria());
         dto.setTipoReceita(categoria.getTipoReceita());
         return dto;
     }
@@ -65,7 +64,6 @@ public class CategoriaService {
         categoria.setId(dto.getId());
         categoria.setNome(dto.getNome());
         categoria.setCor(dto.getCor());
-        categoria.setImagemCategoria(dto.getImagemCategoria());
         categoria.setTipoReceita(dto.getTipoReceita());
         return categoria;
     }

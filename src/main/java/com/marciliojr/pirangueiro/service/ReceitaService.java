@@ -95,7 +95,6 @@ public class ReceitaService {
         categoriaDTO.setId(categoria.getId());
         categoriaDTO.setNome(categoria.getNome());
         categoriaDTO.setCor(categoria.getCor());
-        categoriaDTO.setImagemCategoria(categoria.getImagemCategoria());
         categoriaDTO.setTipoReceita(categoria.getTipoReceita());
         return categoriaDTO;
     }

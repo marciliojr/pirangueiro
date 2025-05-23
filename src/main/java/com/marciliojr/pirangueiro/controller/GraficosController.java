@@ -5,6 +5,7 @@ import com.marciliojr.pirangueiro.dto.GraficoReceitasDespesasDTO;
 import com.marciliojr.pirangueiro.dto.GraficoVariacaoMensalDTO;
 import com.marciliojr.pirangueiro.dto.GraficoDespesasCartaoDTO;
 import com.marciliojr.pirangueiro.dto.GraficoSazonalidadeGastosDTO;
+import com.marciliojr.pirangueiro.dto.GraficoTendenciaGastosDTO;
 import com.marciliojr.pirangueiro.service.GraficosService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -42,5 +43,10 @@ public class GraficosController {
     @GetMapping("/sazonalidade-gastos")
     public ResponseEntity<GraficoSazonalidadeGastosDTO> buscarSazonalidadeGastos() {
         return ResponseEntity.ok(graficosService.buscarSazonalidadeGastos());
+    }
+
+    @GetMapping("/tendencia-gastos")
+    public ResponseEntity<GraficoTendenciaGastosDTO> buscarTendenciaGastos() {
+        return ResponseEntity.ok(graficosService.buscarTendenciaGastos());
     }
 } 

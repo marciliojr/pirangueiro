@@ -15,6 +15,7 @@ import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class GraficosService {
@@ -168,10 +169,18 @@ public class GraficosService {
         return dto;
     }
 
-    public GraficoDespesasCartaoDTO buscarDespesasPorCartaoAoLongoDoTempo(Integer mesesAtras) {
-        // Calcula o período de análise
-        LocalDate dataFim = LocalDate.now();
-        LocalDate dataInicio = dataFim.minusMonths(mesesAtras);
+    public GraficoDespesasCartaoDTO buscarDespesasPorCartaoAoLongoDoTempo(Integer mesesFiltro) {
+
+        LocalDate dataFim;
+        LocalDate dataInicio;
+
+        if (mesesFiltro == null || mesesFiltro >= 18) {
+            dataFim = LocalDate.now().plusMonths(mesesFiltro);
+            dataInicio = LocalDate.now().minusMonths(mesesFiltro);
+        } else {
+            dataFim = LocalDate.now();
+            dataInicio = LocalDate.now().minusMonths(mesesFiltro);
+        }
 
         // Busca os dados do banco
         List<Object[]> dadosDespesas = graficosRepository.buscarDespesasPorCartaoNoPeriodo(dataInicio, dataFim);
@@ -226,6 +235,76 @@ public class GraficosService {
 
         dto.setSeries(series);
         dto.setValorTotalPeriodo(valorTotalPeriodo);
+
+        return dto;
+    }
+
+    public GraficoTendenciaGastosDTO buscarTendenciaGastos() {
+        // Calcula o período de análise (últimos 12 meses)
+        LocalDate dataFim = LocalDate.now();
+        LocalDate dataInicio = dataFim.minusMonths(11); // Para incluir o mês atual
+
+        // Busca os dados do banco
+        List<Object[]> dadosDespesas = graficosRepository.buscarDespesasUltimos12Meses(dataInicio, dataFim);
+
+        // Prepara o DTO
+        GraficoTendenciaGastosDTO dto = new GraficoTendenciaGastosDTO();
+        List<String> meses = new ArrayList<>();
+        List<Double> valores = new ArrayList<>();
+
+        // Processa os dados
+        for (Object[] dado : dadosDespesas) {
+            Map<String, Object> map = (Map<String, Object>) dado[0];
+            String mes = (String) map.get("mes");
+            Double valor = (Double) map.get("valor");
+
+            meses.add(mes);
+            valores.add(valor);
+        }
+
+        // Calcula a média dos gastos
+        double mediaGastos = valores.stream()
+                .mapToDouble(Double::doubleValue)
+                .average()
+                .orElse(0.0);
+
+        // Calcula a regressão linear
+        double[] indices = IntStream.range(0, valores.size())
+                .mapToDouble(i -> i)
+                .toArray();
+
+        double mediaIndices = Arrays.stream(indices).average().orElse(0.0);
+        double mediaValores = valores.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+
+        // Calcula o coeficiente angular (slope)
+        double numerador = 0.0;
+        double denominador = 0.0;
+
+        for (int i = 0; i < valores.size(); i++) {
+            numerador += (indices[i] - mediaIndices) * (valores.get(i) - mediaValores);
+            denominador += Math.pow(indices[i] - mediaIndices, 2);
+        }
+
+        double coeficienteAngular = denominador != 0 ? numerador / denominador : 0.0;
+
+        // Determina a tendência
+        String tendencia;
+        if (Math.abs(coeficienteAngular) < mediaGastos * 0.05) { // 5% da média como threshold
+            tendencia = "ESTÁVEL";
+        } else {
+            tendencia = coeficienteAngular > 0 ? "CRESCENTE" : "DECRESCENTE";
+        }
+
+        // Calcula a previsão para o próximo mês
+        double valorPrevistoProximoMes = mediaValores + coeficienteAngular * valores.size();
+
+        // Configura o DTO
+        dto.setMeses(meses);
+        dto.setValores(valores);
+        dto.setCoeficienteAngular(coeficienteAngular);
+        dto.setMediaGastos(mediaGastos);
+        dto.setTendencia(tendencia);
+        dto.setValorPrevistoProximoMes(valorPrevistoProximoMes);
 
         return dto;
     }

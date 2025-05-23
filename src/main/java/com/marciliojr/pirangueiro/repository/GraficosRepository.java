@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
+import java.time.LocalDate;
 
 public interface GraficosRepository extends JpaRepository<Grafico, Long> {
     
@@ -72,4 +73,14 @@ public interface GraficosRepository extends JpaRepository<Grafico, Long> {
            "GROUP BY MONTH(d.data) " +
            "ORDER BY MONTH(d.data)")
     List<Object[]> buscarMediaHistoricaGastosPorMes();
+
+    @Query("SELECT new map(CONCAT(MONTH(d.data), '/', YEAR(d.data)) as mes, " +
+           "SUM(d.valor) as valor) " +
+           "FROM Despesa d " +
+           "WHERE d.data BETWEEN :dataInicio AND :dataFim " +
+           "GROUP BY YEAR(d.data), MONTH(d.data) " +
+           "ORDER BY YEAR(d.data), MONTH(d.data)")
+    List<Object[]> buscarDespesasUltimos12Meses(
+            @Param("dataInicio") LocalDate dataInicio,
+            @Param("dataFim") LocalDate dataFim);
 } 

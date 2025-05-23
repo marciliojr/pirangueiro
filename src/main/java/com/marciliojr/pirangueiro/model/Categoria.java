@@ -17,7 +17,5 @@ public class Categoria {
 
     private String cor;
 
-    private String imagemCategoria;
-    
     private Boolean tipoReceita;
 } 
