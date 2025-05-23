@@ -37,4 +37,7 @@ public interface ReceitaRepository extends JpaRepository<Receita, Long> {
 
     @Query("SELECT COALESCE(SUM(r.valor), 0) FROM Receita r")
     Double buscarTotalReceitas();
+
+    @Query("SELECT COALESCE(SUM(r.valor), 0) FROM Receita r WHERE MONTH(r.data) = :mes AND YEAR(r.data) = :ano")
+    Double buscarTotalReceitasPorMesAno(@Param("mes") Integer mes, @Param("ano") Integer ano);
 } 

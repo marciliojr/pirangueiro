@@ -128,4 +128,7 @@ public interface DespesaRepository extends JpaRepository<Despesa, Long> {
     Double buscarTotalDespesas();
 
     Optional<Despesa> findByIdAndPagoTrue(Long id);
+
+    @Query("SELECT COALESCE(SUM(d.valor), 0) FROM Despesa d WHERE MONTH(d.data) = :mes AND YEAR(d.data) = :ano")
+    Double buscarTotalDespesasPorMesAno(@Param("mes") Integer mes, @Param("ano") Integer ano);
 } 

@@ -1,5 +1,6 @@
 package com.marciliojr.pirangueiro.controller;
 
+import com.marciliojr.pirangueiro.dto.DashboardFinanceiroDTO;
 import com.marciliojr.pirangueiro.dto.GraficoReceitasDespesasDTO;
 import com.marciliojr.pirangueiro.dto.GraficoVariacaoMensalDTO;
 import com.marciliojr.pirangueiro.service.GraficosService;
@@ -26,5 +27,12 @@ public class GraficosController {
     public ResponseEntity<GraficoVariacaoMensalDTO> buscarVariacaoMensalDespesas(
             @RequestParam Integer ano) {
         return ResponseEntity.ok(graficosService.buscarVariacaoMensalDespesas(ano));
+    }
+
+    @GetMapping("/dashboard-financeiro")
+    public ResponseEntity<DashboardFinanceiroDTO> getDashboardFinanceiro(
+            @RequestParam Integer mes,
+            @RequestParam Integer ano) {
+        return ResponseEntity.ok(graficosService.getDashboardFinanceiro(mes, ano));
     }
 } 
