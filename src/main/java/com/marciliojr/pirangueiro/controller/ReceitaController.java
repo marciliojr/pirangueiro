@@ -4,6 +4,7 @@ import com.marciliojr.pirangueiro.service.ReceitaService;
 import com.marciliojr.pirangueiro.dto.ReceitaDTO;
 import com.marciliojr.pirangueiro.util.PDFGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,19 @@ public class ReceitaController {
     @GetMapping("/buscar")
     public List<ReceitaDTO> buscarPorDescricao(@RequestParam String descricao) {
         return receitaService.buscarPorDescricao(descricao);
+    }
+
+    @GetMapping("/filtros")
+    public Page<ReceitaDTO> buscarComFiltros(
+            @RequestParam(required = false) String descricao,
+            @RequestParam(required = false) Integer mes,
+            @RequestParam(required = false) Integer ano,
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "20") int tamanhoPagina,
+            @RequestParam(required = false) String ordenacao,
+            @RequestParam(required = false, defaultValue = "DESC") String direcao) {
+        return receitaService.buscarComFiltros(
+                descricao, mes, ano, pagina, tamanhoPagina, ordenacao, direcao);
     }
 
     @GetMapping("/mes/{mes}/ano/{ano}")

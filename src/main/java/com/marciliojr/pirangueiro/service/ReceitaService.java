@@ -8,6 +8,10 @@ import com.marciliojr.pirangueiro.dto.ReceitaDTO;
 import com.marciliojr.pirangueiro.dto.ContaDTO;
 import com.marciliojr.pirangueiro.dto.CategoriaDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -57,6 +61,35 @@ public class ReceitaService {
 
     public Double buscarTotalReceitas() {
         return receitaRepository.buscarTotalReceitas();
+    }
+
+    public Page<ReceitaDTO> buscarPorMesEAnoPaginado(int mes, int ano, int pagina, int tamanhoPagina) {
+        Pageable pageable = PageRequest.of(pagina, tamanhoPagina, Sort.by(Sort.Direction.DESC, "data"));
+        return receitaRepository.findByMesEAnoWithRelationshipsPaged(mes, ano, pageable)
+                .map(this::converterParaDTO);
+    }
+
+    public Page<ReceitaDTO> buscarComFiltros(
+            String descricao,
+            Integer mes,
+            Integer ano,
+            int pagina,
+            int tamanhoPagina,
+            String ordenacao,
+            String direcao) {
+        
+        Sort sort;
+        if (ordenacao == null || ordenacao.isEmpty()) {
+            sort = Sort.by(Sort.Direction.DESC, "data"); // ordenação padrão
+        } else {
+            Sort.Direction direction = direcao != null && direcao.equalsIgnoreCase("ASC") ? 
+                Sort.Direction.ASC : Sort.Direction.DESC;
+            sort = Sort.by(direction, ordenacao);
+        }
+
+        Pageable pageable = PageRequest.of(pagina, tamanhoPagina, sort);
+        return receitaRepository.findByFiltros(descricao, mes, ano, pageable)
+                .map(this::converterParaDTO);
     }
 
     private ReceitaDTO converterParaDTO(Receita receita) {

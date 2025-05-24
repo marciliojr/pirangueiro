@@ -2,6 +2,8 @@ package com.marciliojr.pirangueiro.repository;
 
 import com.marciliojr.pirangueiro.model.Receita;
 import com.marciliojr.pirangueiro.model.Categoria;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -26,6 +28,16 @@ public interface ReceitaRepository extends JpaRepository<Receita, Long> {
     // Query com fetch join para buscar por mês e ano com relacionamentos
     @Query("SELECT r FROM Receita r LEFT JOIN FETCH r.conta LEFT JOIN FETCH r.categoria WHERE MONTH(r.data) = :mes AND YEAR(r.data) = :ano")
     List<Receita> findByMesEAnoWithRelationships(@Param("mes") int mes, @Param("ano") int ano);
+
+    @Query(value = "SELECT DISTINCT r FROM Receita r " +
+           "LEFT JOIN FETCH r.conta " +
+           "LEFT JOIN FETCH r.categoria " +
+           "WHERE MONTH(r.data) = :mes AND YEAR(r.data) = :ano",
+           countQuery = "SELECT COUNT(r) FROM Receita r WHERE MONTH(r.data) = :mes AND YEAR(r.data) = :ano")
+    Page<Receita> findByMesEAnoWithRelationshipsPaged(
+            @Param("mes") int mes,
+            @Param("ano") int ano,
+            Pageable pageable);
     
     // Métodos existentes mantidos para compatibilidade
     List<Receita> findByDescricaoContainingIgnoreCase(String descricao);
@@ -40,4 +52,20 @@ public interface ReceitaRepository extends JpaRepository<Receita, Long> {
 
     @Query("SELECT COALESCE(SUM(r.valor), 0) FROM Receita r WHERE MONTH(r.data) = :mes AND YEAR(r.data) = :ano")
     Double buscarTotalReceitasPorMesAno(@Param("mes") Integer mes, @Param("ano") Integer ano);
+
+    @Query(value = "SELECT DISTINCT r FROM Receita r " +
+           "LEFT JOIN FETCH r.conta " +
+           "LEFT JOIN FETCH r.categoria " +
+           "WHERE (:descricao IS NULL OR LOWER(r.descricao) LIKE LOWER(CONCAT('%', :descricao, '%'))) " +
+           "AND (:mes IS NULL OR MONTH(r.data) = :mes) " +
+           "AND (:ano IS NULL OR YEAR(r.data) = :ano)",
+           countQuery = "SELECT COUNT(DISTINCT r) FROM Receita r " +
+           "WHERE (:descricao IS NULL OR LOWER(r.descricao) LIKE LOWER(CONCAT('%', :descricao, '%'))) " +
+           "AND (:mes IS NULL OR MONTH(r.data) = :mes) " +
+           "AND (:ano IS NULL OR YEAR(r.data) = :ano)")
+    Page<Receita> findByFiltros(
+            @Param("descricao") String descricao,
+            @Param("mes") Integer mes,
+            @Param("ano") Integer ano,
+            Pageable pageable);
 } 
