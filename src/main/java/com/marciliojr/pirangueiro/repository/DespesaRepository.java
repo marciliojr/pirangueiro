@@ -128,7 +128,6 @@ public interface DespesaRepository extends JpaRepository<Despesa, Long> {
     @Query("SELECT COALESCE(SUM(d.valor), 0) FROM Despesa d WHERE d.pago = false")
     Double buscarTotalDespesas();
 
-    Optional<Despesa> findByIdAndPagoTrue(Long id);
 
     @Query("SELECT COALESCE(SUM(d.valor), 0) FROM Despesa d WHERE MONTH(d.data) = :mes AND YEAR(d.data) = :ano")
     Double buscarTotalDespesasPorMesAno(@Param("mes") Integer mes, @Param("ano") Integer ano);
@@ -137,7 +136,6 @@ public interface DespesaRepository extends JpaRepository<Despesa, Long> {
     @Query("SELECT YEAR(d.data) as ano, MONTH(d.data) as mes, COALESCE(SUM(d.valor), 0.0) as total " +
            "FROM Despesa d " +
            "WHERE d.data BETWEEN :dataInicio AND :dataFim " +
-           "AND d.pago = true " +
            "GROUP BY YEAR(d.data), MONTH(d.data) " +
            "ORDER BY YEAR(d.data), MONTH(d.data)")
     List<Object[]> buscarDespesasPagasAgrupadasPorMesRaw(
@@ -152,7 +150,6 @@ public interface DespesaRepository extends JpaRepository<Despesa, Long> {
            "COALESCE(SUM(d.valor), 0.0)) " +
            "FROM Despesa d " +
            "WHERE d.data BETWEEN :dataInicio AND :dataFim " +
-           "AND d.pago = true " +
            "GROUP BY YEAR(d.data), MONTH(d.data) " +
            "ORDER BY YEAR(d.data), MONTH(d.data)")
     List<DespesaMensalDTO> buscarDespesasPagasAgrupadasPorMes(
