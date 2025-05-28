@@ -32,7 +32,7 @@ public class GraficosService {
     @Autowired
     private ReceitaRepository receitaRepository;
 
-    public GraficoReceitasDespesasDTO buscarDadosGraficoReceitasDespesas(Integer mes, Integer ano) {
+    public GraficoReceitasDespesasCategoriaDTO buscarDadosGraficoReceitasDespesasCategoria(Integer mes, Integer ano) {
         List<Object[]> dadosReceitas = graficosRepository.buscarReceitasPorCategoriaMesAno(mes, ano);
         List<Object[]> dadosDespesas = graficosRepository.buscarDespesasPorCategoriaMesAno(mes, ano);
 
@@ -42,7 +42,7 @@ public class GraficosService {
         List<DadosGraficoDTO> receitas = converterParaDadosGrafico(dadosReceitas, totalReceitas);
         List<DadosGraficoDTO> despesas = converterParaDadosGrafico(dadosDespesas, totalDespesas);
 
-        GraficoReceitasDespesasDTO dto = new GraficoReceitasDespesasDTO();
+        GraficoReceitasDespesasCategoriaDTO dto = new GraficoReceitasDespesasCategoriaDTO();
         dto.setMes(mes);
         dto.setAno(ano);
         dto.setReceitas(receitas);

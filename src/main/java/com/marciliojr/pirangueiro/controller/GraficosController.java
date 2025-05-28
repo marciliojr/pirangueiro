@@ -1,8 +1,7 @@
 package com.marciliojr.pirangueiro.controller;
 
 import com.marciliojr.pirangueiro.dto.DashboardFinanceiroDTO;
-import com.marciliojr.pirangueiro.dto.GraficoReceitasDespesasDTO;
-import com.marciliojr.pirangueiro.dto.GraficoVariacaoMensalDTO;
+import com.marciliojr.pirangueiro.dto.GraficoReceitasDespesasCategoriaDTO;
 import com.marciliojr.pirangueiro.dto.GraficoDespesasCartaoDTO;
 import com.marciliojr.pirangueiro.dto.GraficoSazonalidadeGastosDTO;
 import com.marciliojr.pirangueiro.dto.GraficoTendenciaGastosDTO;
@@ -19,13 +18,12 @@ public class GraficosController {
     @Autowired
     private GraficosService graficosService;
 
-    @GetMapping("/receitas-despesas")
-    public ResponseEntity<GraficoReceitasDespesasDTO> buscarGraficoReceitasDespesas(
+    @GetMapping("/receitas-despesas-categoria")
+    public ResponseEntity<GraficoReceitasDespesasCategoriaDTO> buscarGraficoReceitasDespesas(
             @RequestParam Integer mes,
             @RequestParam Integer ano) {
-        return ResponseEntity.ok(graficosService.buscarDadosGraficoReceitasDespesas(mes, ano));
+        return ResponseEntity.ok(graficosService.buscarDadosGraficoReceitasDespesasCategoria(mes, ano));
     }
-
 
     @GetMapping("/dashboard-financeiro")
     public ResponseEntity<DashboardFinanceiroDTO> getDashboardFinanceiro(

@@ -4,7 +4,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class GraficoReceitasDespesasDTO {
+public class GraficoReceitasDespesasCategoriaDTO {
     private Integer mes;
     private Integer ano;
     private List<DadosGraficoDTO> receitas;
