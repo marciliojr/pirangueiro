@@ -2,6 +2,7 @@ package com.marciliojr.pirangueiro.repository;
 
 import com.marciliojr.pirangueiro.model.Receita;
 import com.marciliojr.pirangueiro.model.Categoria;
+import com.marciliojr.pirangueiro.dto.ReceitaMensalDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -68,4 +69,28 @@ public interface ReceitaRepository extends JpaRepository<Receita, Long> {
             @Param("mes") Integer mes,
             @Param("ano") Integer ano,
             Pageable pageable);
+
+    // Query para gráfico: receitas agrupadas por mês
+    @Query("SELECT YEAR(r.data) as ano, MONTH(r.data) as mes, COALESCE(SUM(r.valor), 0.0) as total " +
+           "FROM Receita r " +
+           "WHERE r.data BETWEEN :dataInicio AND :dataFim " +
+           "GROUP BY YEAR(r.data), MONTH(r.data) " +
+           "ORDER BY YEAR(r.data), MONTH(r.data)")
+    List<Object[]> buscarReceitasAgrupadasPorMesRaw(
+            @Param("dataInicio") LocalDate dataInicio,
+            @Param("dataFim") LocalDate dataFim);
+
+    // Query simplificada para gráfico: receitas agrupadas por mês
+    @Query("SELECT new com.marciliojr.pirangueiro.dto.ReceitaMensalDTO(" +
+           "CONCAT(CAST(YEAR(r.data) AS string), '-', " +
+           "CASE WHEN MONTH(r.data) < 10 THEN CONCAT('0', CAST(MONTH(r.data) AS string)) " +
+           "ELSE CAST(MONTH(r.data) AS string) END), " +
+           "COALESCE(SUM(r.valor), 0.0)) " +
+           "FROM Receita r " +
+           "WHERE r.data BETWEEN :dataInicio AND :dataFim " +
+           "GROUP BY YEAR(r.data), MONTH(r.data) " +
+           "ORDER BY YEAR(r.data), MONTH(r.data)")
+    List<ReceitaMensalDTO> buscarReceitasAgrupadasPorMes(
+            @Param("dataInicio") LocalDate dataInicio,
+            @Param("dataFim") LocalDate dataFim);
 } 

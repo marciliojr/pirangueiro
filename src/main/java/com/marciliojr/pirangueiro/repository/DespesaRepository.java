@@ -2,6 +2,7 @@ package com.marciliojr.pirangueiro.repository;
 
 import com.marciliojr.pirangueiro.model.Despesa;
 import com.marciliojr.pirangueiro.model.Categoria;
+import com.marciliojr.pirangueiro.dto.DespesaMensalDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -131,4 +132,30 @@ public interface DespesaRepository extends JpaRepository<Despesa, Long> {
 
     @Query("SELECT COALESCE(SUM(d.valor), 0) FROM Despesa d WHERE MONTH(d.data) = :mes AND YEAR(d.data) = :ano")
     Double buscarTotalDespesasPorMesAno(@Param("mes") Integer mes, @Param("ano") Integer ano);
+
+    // Query para gráfico: despesas pagas agrupadas por mês
+    @Query("SELECT YEAR(d.data) as ano, MONTH(d.data) as mes, COALESCE(SUM(d.valor), 0.0) as total " +
+           "FROM Despesa d " +
+           "WHERE d.data BETWEEN :dataInicio AND :dataFim " +
+           "AND d.pago = true " +
+           "GROUP BY YEAR(d.data), MONTH(d.data) " +
+           "ORDER BY YEAR(d.data), MONTH(d.data)")
+    List<Object[]> buscarDespesasPagasAgrupadasPorMesRaw(
+            @Param("dataInicio") LocalDate dataInicio,
+            @Param("dataFim") LocalDate dataFim);
+
+    // Query simplificada para gráfico: despesas pagas agrupadas por mês
+    @Query("SELECT new com.marciliojr.pirangueiro.dto.DespesaMensalDTO(" +
+           "CONCAT(CAST(YEAR(d.data) AS string), '-', " +
+           "CASE WHEN MONTH(d.data) < 10 THEN CONCAT('0', CAST(MONTH(d.data) AS string)) " +
+           "ELSE CAST(MONTH(d.data) AS string) END), " +
+           "COALESCE(SUM(d.valor), 0.0)) " +
+           "FROM Despesa d " +
+           "WHERE d.data BETWEEN :dataInicio AND :dataFim " +
+           "AND d.pago = true " +
+           "GROUP BY YEAR(d.data), MONTH(d.data) " +
+           "ORDER BY YEAR(d.data), MONTH(d.data)")
+    List<DespesaMensalDTO> buscarDespesasPagasAgrupadasPorMes(
+            @Param("dataInicio") LocalDate dataInicio,
+            @Param("dataFim") LocalDate dataFim);
 } 

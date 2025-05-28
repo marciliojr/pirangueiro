@@ -309,4 +309,99 @@ public class GraficosService {
         return dto;
     }
 
+    public GraficoReceitasDespesasResponseDTO buscarGraficoReceitasDespesasPorMes(
+            LocalDate dataInicio, LocalDate dataFim) {
+        
+        // Valida os parâmetros
+        if (dataInicio == null || dataFim == null) {
+            // Se não fornecido, considera últimos 12 meses
+            dataFim = LocalDate.now();
+            dataInicio = dataFim.minusMonths(11).withDayOfMonth(1);
+            dataFim = dataFim.withDayOfMonth(dataFim.lengthOfMonth());
+        }
+        
+        if (dataInicio.isAfter(dataFim)) {
+            throw new IllegalArgumentException("Data de início deve ser menor ou igual à data final");
+        }
+        
+        // Busca dados de receitas e despesas agrupados por mês
+        List<ReceitaMensalDTO> receitas;
+        List<DespesaMensalDTO> despesas;
+        
+        try {
+            // Tenta usar as queries com DTO primeiro
+            receitas = receitaRepository.buscarReceitasAgrupadasPorMes(dataInicio, dataFim);
+            despesas = despesaRepository.buscarDespesasPagasAgrupadasPorMes(dataInicio, dataFim);
+        } catch (Exception e) {
+            // Se falhar, usa as queries raw como fallback
+            receitas = converterReceitasRawParaDTO(
+                receitaRepository.buscarReceitasAgrupadasPorMesRaw(dataInicio, dataFim));
+            despesas = converterDespesasRawParaDTO(
+                despesaRepository.buscarDespesasPagasAgrupadasPorMesRaw(dataInicio, dataFim));
+        }
+        
+        // Cria mapa para facilitar a busca
+        Map<String, Double> receitasPorMes = receitas.stream()
+                .collect(Collectors.toMap(ReceitaMensalDTO::getMes, ReceitaMensalDTO::getTotal));
+        
+        Map<String, Double> despesasPorMes = despesas.stream()
+                .collect(Collectors.toMap(DespesaMensalDTO::getMes, DespesaMensalDTO::getTotal));
+        
+        // Gera lista de todos os meses no período
+        List<String> todosMeses = gerarListaMeses(dataInicio, dataFim);
+        
+        // Monta os dados do gráfico
+        List<GraficoReceitasDespesasDTO> dados = todosMeses.stream()
+                .map(mes -> new GraficoReceitasDespesasDTO(
+                        mes,
+                        receitasPorMes.getOrDefault(mes, 0.0),
+                        despesasPorMes.getOrDefault(mes, 0.0)
+                ))
+                .collect(Collectors.toList());
+        
+        // Monta a resposta
+        GraficoReceitasDespesasResponseDTO.PeriodoDTO periodo = 
+                new GraficoReceitasDespesasResponseDTO.PeriodoDTO(dataInicio, dataFim);
+        
+        return new GraficoReceitasDespesasResponseDTO(dados, periodo);
+    }
+    
+    private List<ReceitaMensalDTO> converterReceitasRawParaDTO(List<Object[]> resultados) {
+        return resultados.stream()
+                .map(row -> {
+                    Integer ano = (Integer) row[0];
+                    Integer mes = (Integer) row[1];
+                    Double total = (Double) row[2];
+                    String mesFormatado = String.format("%04d-%02d", ano, mes);
+                    return new ReceitaMensalDTO(mesFormatado, total);
+                })
+                .collect(Collectors.toList());
+    }
+    
+    private List<DespesaMensalDTO> converterDespesasRawParaDTO(List<Object[]> resultados) {
+        return resultados.stream()
+                .map(row -> {
+                    Integer ano = (Integer) row[0];
+                    Integer mes = (Integer) row[1];
+                    Double total = (Double) row[2];
+                    String mesFormatado = String.format("%04d-%02d", ano, mes);
+                    return new DespesaMensalDTO(mesFormatado, total);
+                })
+                .collect(Collectors.toList());
+    }
+    
+    private List<String> gerarListaMeses(LocalDate dataInicio, LocalDate dataFim) {
+        List<String> meses = new ArrayList<>();
+        
+        YearMonth mesAtual = YearMonth.from(dataInicio);
+        YearMonth mesFinal = YearMonth.from(dataFim);
+        
+        while (!mesAtual.isAfter(mesFinal)) {
+            meses.add(String.format("%04d-%02d", mesAtual.getYear(), mesAtual.getMonthValue()));
+            mesAtual = mesAtual.plusMonths(1);
+        }
+        
+        return meses;
+    }
+
 } 

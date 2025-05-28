@@ -5,10 +5,14 @@ import com.marciliojr.pirangueiro.dto.GraficoReceitasDespesasCategoriaDTO;
 import com.marciliojr.pirangueiro.dto.GraficoDespesasCartaoDTO;
 import com.marciliojr.pirangueiro.dto.GraficoSazonalidadeGastosDTO;
 import com.marciliojr.pirangueiro.dto.GraficoTendenciaGastosDTO;
+import com.marciliojr.pirangueiro.dto.GraficoReceitasDespesasResponseDTO;
 import com.marciliojr.pirangueiro.service.GraficosService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/graficos")
@@ -46,5 +50,21 @@ public class GraficosController {
     @GetMapping("/tendencia-gastos")
     public ResponseEntity<GraficoTendenciaGastosDTO> buscarTendenciaGastos() {
         return ResponseEntity.ok(graficosService.buscarTendenciaGastos());
+    }
+
+    @GetMapping("/receitas-despesas")
+    public ResponseEntity<GraficoReceitasDespesasResponseDTO> buscarGraficoReceitasDespesasPorMes(
+            @RequestParam(required = false) 
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+            @RequestParam(required = false) 
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim) {
+        
+        try {
+            GraficoReceitasDespesasResponseDTO resultado = 
+                graficosService.buscarGraficoReceitasDespesasPorMes(dataInicio, dataFim);
+            return ResponseEntity.ok(resultado);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 } 
