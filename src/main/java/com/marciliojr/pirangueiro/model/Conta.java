@@ -22,4 +22,8 @@ public class Conta {
     @Lob
     @Column(name = "imagem_logo", columnDefinition = "LONGBLOB")
     private byte[] imagemLogo;
+
+    @ManyToOne
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
 } 

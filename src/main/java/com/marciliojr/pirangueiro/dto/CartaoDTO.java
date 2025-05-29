@@ -10,4 +10,5 @@ public class CartaoDTO {
     private Double limiteUsado;
     private Integer diaFechamento;
     private Integer diaVencimento;
+    private UsuarioDTO usuario;
 } 

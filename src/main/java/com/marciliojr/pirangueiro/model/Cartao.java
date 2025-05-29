@@ -1,9 +1,6 @@
 package com.marciliojr.pirangueiro.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
 
 /**
@@ -25,4 +22,8 @@ public class Cartao {
     private Integer diaFechamento;
 
     private Integer diaVencimento;
+
+    @ManyToOne
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
 } 

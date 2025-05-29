@@ -18,4 +18,5 @@ public class DespesaDTO {
     private Integer numeroParcela;
     private Integer totalParcelas;
     private Boolean pago;
+    private UsuarioDTO usuario;
 } 
