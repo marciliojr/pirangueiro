@@ -2,9 +2,7 @@ package com.marciliojr.pirangueiro.controller;
 
 import com.marciliojr.pirangueiro.dto.HistoricoDTO;
 import com.marciliojr.pirangueiro.model.Historico;
-import com.marciliojr.pirangueiro.model.Usuario;
 import com.marciliojr.pirangueiro.service.HistoricoService;
-import com.marciliojr.pirangueiro.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,11 +11,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,14 +24,12 @@ import java.util.stream.Collectors;
  * realizadas no sistema, incluindo funcionalidades como:</p>
  * <ul>
  *   <li>Listagem completa do histórico</li>
- *   <li>Busca por usuário específico</li>
  *   <li>Busca por entidade e ID da entidade</li>
- *   <li>Busca por período de tempo</li>
  *   <li>Auditoria de operações CRUD</li>
  * </ul>
  * 
  * <p>O histórico é fundamental para auditoria e rastreabilidade das operações
- * realizadas no sistema, permitindo identificar quem fez o quê e quando.</p>
+ * realizadas no sistema, permitindo identificar o que foi feito e quando.</p>
  * 
  * @author Marcilio Jr
  * @version 1.0
@@ -51,12 +45,6 @@ public class HistoricoController {
      */
     @Autowired
     private HistoricoService historicoService;
-
-    /**
-     * Serviço responsável pela lógica de negócio dos usuários.
-     */
-    @Autowired
-    private UsuarioService usuarioService;
 
     /**
      * Lista todo o histórico de operações do sistema.
@@ -85,46 +73,9 @@ public class HistoricoController {
     }
 
     /**
-     * Busca histórico de operações de um usuário específico.
-     * 
-     * @param usuarioId ID do usuário para busca do histórico
-     * @return ResponseEntity contendo lista de operações do usuário
-     * @throws RuntimeException se o usuário não for encontrado
-     */
-    @Operation(
-        summary = "Buscar histórico por usuário",
-        description = "Retorna todas as operações realizadas por um usuário específico."
-    )
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "Histórico do usuário retornado com sucesso",
-            content = @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = HistoricoDTO.class)
-            )
-        ),
-        @ApiResponse(
-            responseCode = "404",
-            description = "Usuário não encontrado",
-            content = @Content
-        )
-    })
-    @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<List<HistoricoDTO>> buscarPorUsuario(
-            @Parameter(description = "ID do usuário para busca do histórico", required = true)
-            @PathVariable Long usuarioId) {
-        Usuario usuario = usuarioService.buscarPorId(usuarioId);
-        List<Historico> historicos = historicoService.buscarPorUsuario(usuario);
-        return ResponseEntity.ok(historicos.stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList()));
-    }
-
-    /**
      * Busca histórico de operações de uma entidade específica.
      * 
-     * @param entidade Nome da entidade (ex: "Despesa", "Receita", "Usuario")
+     * @param entidade Nome da entidade (ex: "DESPESA", "RECEITA", "CONTA", "CARTAO")
      * @param entidadeId ID da entidade específica
      * @return ResponseEntity contendo lista de operações da entidade
      */
@@ -145,53 +96,11 @@ public class HistoricoController {
     })
     @GetMapping("/entidade/{entidade}/{entidadeId}")
     public ResponseEntity<List<HistoricoDTO>> buscarPorEntidade(
-            @Parameter(description = "Nome da entidade (ex: Despesa, Receita)", required = true)
+            @Parameter(description = "Nome da entidade (ex: DESPESA, RECEITA, CONTA, CARTAO)", required = true)
             @PathVariable String entidade,
             @Parameter(description = "ID da entidade específica", required = true)
             @PathVariable Long entidadeId) {
         List<Historico> historicos = historicoService.buscarPorEntidade(entidade, entidadeId);
-        return ResponseEntity.ok(historicos.stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList()));
-    }
-
-    /**
-     * Busca histórico de um usuário em um período específico.
-     * 
-     * @param usuarioId ID do usuário
-     * @param dataInicio Data e hora de início do período
-     * @param dataFim Data e hora de fim do período
-     * @return ResponseEntity contendo lista de operações do período
-     */
-    @Operation(
-        summary = "Buscar histórico por usuário e período",
-        description = "Retorna todas as operações realizadas por um usuário específico " +
-                     "dentro de um período de tempo determinado."
-    )
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "Histórico do período retornado com sucesso",
-            content = @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = HistoricoDTO.class)
-            )
-        ),
-        @ApiResponse(
-            responseCode = "400",
-            description = "Período inválido ou parâmetros incorretos",
-            content = @Content
-        )
-    })
-    @GetMapping("/usuario/{usuarioId}/periodo")
-    public ResponseEntity<List<HistoricoDTO>> buscarPorUsuarioEPeriodo(
-            @Parameter(description = "ID do usuário", required = true)
-            @PathVariable Long usuarioId,
-            @Parameter(description = "Data e hora de início (formato: yyyy-MM-ddTHH:mm:ss)", required = true)
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataInicio,
-            @Parameter(description = "Data e hora de fim (formato: yyyy-MM-ddTHH:mm:ss)", required = true)
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataFim) {
-        List<Historico> historicos = historicoService.buscarPorUsuarioEPeriodo(usuarioId, dataInicio, dataFim);
         return ResponseEntity.ok(historicos.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList()));
@@ -209,7 +118,6 @@ public class HistoricoController {
         dto.setTipoOperacao(historico.getTipoOperacao());
         dto.setEntidade(historico.getEntidade());
         dto.setEntidadeId(historico.getEntidadeId());
-        dto.setNomeUsuario(historico.getUsuario().getNome());
         dto.setDataHora(historico.getDataHora());
         return dto;
     }

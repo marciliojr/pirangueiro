@@ -13,5 +13,4 @@ public class ReceitaDTO {
     private CategoriaDTO categoria;
     private String anexo;
     private String observacao;
-    private UsuarioDTO usuario;
 } 

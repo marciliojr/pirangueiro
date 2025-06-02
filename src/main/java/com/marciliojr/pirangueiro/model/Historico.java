@@ -24,10 +24,6 @@ public class Historico {
     @Column(nullable = false)
     private Long entidadeId;
 
-    @ManyToOne
-    @JoinColumn(name = "usuario_id", nullable = false)
-    private Usuario usuario;
-
     @Column(nullable = false)
     private LocalDateTime dataHora;
 

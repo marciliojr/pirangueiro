@@ -18,7 +18,6 @@ public class ContaService {
     @Autowired
     private ContaRepository contaRepository;
 
-
     public List<ContaDTO> listarTodas() {
         return contaRepository.findAll().stream()
                 .map(this::converterParaDTO)
@@ -39,6 +38,11 @@ public class ContaService {
 
     public ContaDTO salvar(ContaDTO contaDTO, MultipartFile imagemLogo) {
         try {
+            // Processar a imagem se fornecida
+            if (imagemLogo != null && !imagemLogo.isEmpty()) {
+                contaDTO.setImagemLogo(imagemLogo.getBytes());
+            }
+            
             Conta conta = converterParaEntidade(contaDTO);
             return converterParaDTO(contaRepository.save(conta));
         } catch (Exception e) {

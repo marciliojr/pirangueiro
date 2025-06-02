@@ -44,8 +44,4 @@ public class Despesa {
 
     @Column(nullable = true)
     private Boolean pago;
-
-    @ManyToOne
-    @JoinColumn(name = "usuario_id", nullable = false)
-    private Usuario usuario;
 } 

@@ -22,8 +22,4 @@ public class Cartao {
     private Integer diaFechamento;
 
     private Integer diaVencimento;
-
-    @ManyToOne
-    @JoinColumn(name = "usuario_id", nullable = false)
-    private Usuario usuario;
 } 

@@ -9,5 +9,4 @@ public class ContaDTO {
     private String nome;
     private TipoConta tipo;
     private byte[] imagemLogo;
-    private UsuarioDTO usuario;
 } 

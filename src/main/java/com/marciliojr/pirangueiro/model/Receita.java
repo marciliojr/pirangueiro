@@ -31,8 +31,4 @@ public class Receita {
     private String anexo;
 
     private String observacao;
-
-    @ManyToOne
-    @JoinColumn(name = "usuario_id", nullable = false)
-    private Usuario usuario;
 } 
