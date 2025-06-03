@@ -96,30 +96,51 @@ public class ContaService {
         }
     }
 
+    /**
+     * Calcula o saldo de uma conta considerando receitas, despesas diretas da conta
+     * e despesas de cartão não pagas.
+     * 
+     * @param contaId ID da conta para cálculo
+     * @param mes Mês específico (opcional)
+     * @param ano Ano específico (opcional)
+     * @return DTO com informações detalhadas do saldo
+     */
     public SaldoContaDTO calcularSaldoConta(Long contaId, Integer mes, Integer ano) {
         Conta conta = contaRepository.findById(contaId)
                 .orElseThrow(() -> new RuntimeException("Conta não encontrada"));
 
         Double totalReceitas;
         Double totalDespesas;
+        Double totalDespesasCartao;
 
         if (mes == null || ano == null) {
             // Se não informar mês e ano, calcula o total geral
             totalReceitas = contaRepository.calcularTotalReceitasPorConta(contaId);
             totalDespesas = contaRepository.calcularTotalDespesasPorConta(contaId);
+            totalDespesasCartao = contaRepository.calcularTotalDespesasCartaoNaoPagas();
         } else {
             // Se informar mês e ano, calcula apenas do período específico
             totalReceitas = contaRepository.calcularTotalReceitasPorContaEMes(contaId, mes, ano);
             totalDespesas = contaRepository.calcularTotalDespesasPorContaEMes(contaId, mes, ano);
+            totalDespesasCartao = contaRepository.calcularTotalDespesasCartaoNaoPagasPorMesAno(mes, ano);
         }
 
-        Double saldo = totalReceitas - totalDespesas;
+        // Garantir que os valores não sejam null
+        totalReceitas = totalReceitas != null ? totalReceitas : 0.0;
+        totalDespesas = totalDespesas != null ? totalDespesas : 0.0;
+        totalDespesasCartao = totalDespesasCartao != null ? totalDespesasCartao : 0.0;
+
+        // Somar despesas diretas da conta + despesas de cartão não pagas
+        Double totalDespesasCompleto = totalDespesas + totalDespesasCartao;
+        Double saldo = totalReceitas - totalDespesasCompleto;
 
         SaldoContaDTO saldoDTO = new SaldoContaDTO();
         saldoDTO.setContaId(contaId);
         saldoDTO.setNomeConta(conta.getNome());
         saldoDTO.setTotalReceitas(totalReceitas);
-        saldoDTO.setTotalDespesas(totalDespesas);
+        saldoDTO.setTotalDespesas(totalDespesasCompleto);
+        saldoDTO.setTotalDespesasConta(totalDespesas);
+        saldoDTO.setTotalDespesasCartao(totalDespesasCartao);
         saldoDTO.setSaldo(saldo);
         saldoDTO.setMes(mes);
         saldoDTO.setAno(ano);

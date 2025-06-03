@@ -27,4 +27,11 @@ public interface ContaRepository extends JpaRepository<Conta, Long> {
     @Query("SELECT COUNT(r) > 0 FROM Receita r WHERE r.conta.id = :contaId")
     boolean existeReceitaAssociadaConta(@Param("contaId") Long contaId);
 
+    // Novas queries para despesas de cartão não pagas
+    @Query("SELECT COALESCE(SUM(d.valor), 0) FROM Despesa d WHERE d.cartao IS NOT NULL AND d.pago = false")
+    Double calcularTotalDespesasCartaoNaoPagas();
+    
+    @Query("SELECT COALESCE(SUM(d.valor), 0) FROM Despesa d WHERE d.cartao IS NOT NULL AND d.pago = false AND MONTH(d.data) = :mes AND YEAR(d.data) = :ano")
+    Double calcularTotalDespesasCartaoNaoPagasPorMesAno(@Param("mes") int mes, @Param("ano") int ano);
+
 } 

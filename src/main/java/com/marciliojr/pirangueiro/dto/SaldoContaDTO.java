@@ -8,6 +8,8 @@ public class SaldoContaDTO {
     private String nomeConta;
     private Double totalReceitas;
     private Double totalDespesas;
+    private Double totalDespesasConta; // Despesas diretas da conta
+    private Double totalDespesasCartao; // Despesas de cartão não pagas
     private Double saldo;
     private Integer mes;
     private Integer ano;
