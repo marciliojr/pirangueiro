@@ -432,7 +432,8 @@ public class DespesaController {
     })
     @GetMapping("/total")
     public ResponseEntity<Double> buscarTotalDespesas() {
-        return ResponseEntity.ok(despesaService.buscarTotalDespesas());
+        ResponseEntity<Double> ok = ResponseEntity.ok(despesaService.buscarTotalDespesas());
+        return ok;
     }
 
     /**
