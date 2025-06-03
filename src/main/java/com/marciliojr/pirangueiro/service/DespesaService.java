@@ -167,6 +167,10 @@ public class DespesaService {
         return despesaRepository.buscarTotalDespesas();
     }
 
+    public Double buscarTotalDespesasNaoPagas() {
+        return despesaRepository.buscarTotalDespesasNaoPagas();
+    }
+
     public void marcarDespesaComoPaga(Long despesaId) {
         Despesa despesa = despesaRepository.findById(despesaId)
                 .orElseThrow(() -> new NegocioException("Despesa não encontrada com ID: " + despesaId));

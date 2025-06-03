@@ -331,13 +331,13 @@ public class GraficosService {
         try {
             // Tenta usar as queries com DTO primeiro
             receitas = receitaRepository.buscarReceitasAgrupadasPorMes(dataInicio, dataFim);
-            despesas = despesaRepository.buscarDespesasPagasAgrupadasPorMes(dataInicio, dataFim);
+            despesas = despesaRepository.buscarDespesasAgrupadasPorMes(dataInicio, dataFim);
         } catch (Exception e) {
             // Se falhar, usa as queries raw como fallback
             receitas = converterReceitasRawParaDTO(
                 receitaRepository.buscarReceitasAgrupadasPorMesRaw(dataInicio, dataFim));
             despesas = converterDespesasRawParaDTO(
-                despesaRepository.buscarDespesasPagasAgrupadasPorMesRaw(dataInicio, dataFim));
+                despesaRepository.buscarDespesasAgrupadasPorMesRaw(dataInicio, dataFim));
         }
         
         // Cria mapa para facilitar a busca

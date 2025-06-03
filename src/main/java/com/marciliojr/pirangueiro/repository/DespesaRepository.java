@@ -125,24 +125,26 @@ public interface DespesaRepository extends JpaRepository<Despesa, Long> {
             @Param("ano") Integer ano,
             Pageable pageable);
 
-    @Query("SELECT COALESCE(SUM(d.valor), 0) FROM Despesa d WHERE d.pago = false OR d.pago IS NULL")
+    @Query("SELECT COALESCE(SUM(d.valor), 0) FROM Despesa d")
     Double buscarTotalDespesas();
 
+    @Query("SELECT COALESCE(SUM(d.valor), 0) FROM Despesa d WHERE d.pago = false OR d.pago IS NULL")
+    Double buscarTotalDespesasNaoPagas();
 
     @Query("SELECT COALESCE(SUM(d.valor), 0) FROM Despesa d WHERE MONTH(d.data) = :mes AND YEAR(d.data) = :ano")
     Double buscarTotalDespesasPorMesAno(@Param("mes") Integer mes, @Param("ano") Integer ano);
 
-    // Query para gráfico: despesas pagas agrupadas por mês
+    // Query para gráfico: todas as despesas agrupadas por mês (não considera campo pago)
     @Query("SELECT YEAR(d.data) as ano, MONTH(d.data) as mes, COALESCE(SUM(d.valor), 0.0) as total " +
            "FROM Despesa d " +
            "WHERE d.data BETWEEN :dataInicio AND :dataFim " +
            "GROUP BY YEAR(d.data), MONTH(d.data) " +
            "ORDER BY YEAR(d.data), MONTH(d.data)")
-    List<Object[]> buscarDespesasPagasAgrupadasPorMesRaw(
+    List<Object[]> buscarDespesasAgrupadasPorMesRaw(
             @Param("dataInicio") LocalDate dataInicio,
             @Param("dataFim") LocalDate dataFim);
 
-    // Query simplificada para gráfico: despesas pagas agrupadas por mês
+    // Query para gráfico: todas as despesas agrupadas por mês (não considera campo pago)
     @Query("SELECT new com.marciliojr.pirangueiro.dto.DespesaMensalDTO(" +
            "CONCAT(CAST(YEAR(d.data) AS string), '-', " +
            "CASE WHEN MONTH(d.data) < 10 THEN CONCAT('0', CAST(MONTH(d.data) AS string)) " +
@@ -152,7 +154,7 @@ public interface DespesaRepository extends JpaRepository<Despesa, Long> {
            "WHERE d.data BETWEEN :dataInicio AND :dataFim " +
            "GROUP BY YEAR(d.data), MONTH(d.data) " +
            "ORDER BY YEAR(d.data), MONTH(d.data)")
-    List<DespesaMensalDTO> buscarDespesasPagasAgrupadasPorMes(
+    List<DespesaMensalDTO> buscarDespesasAgrupadasPorMes(
             @Param("dataInicio") LocalDate dataInicio,
             @Param("dataFim") LocalDate dataFim);
 } 
