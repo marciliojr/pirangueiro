@@ -14,6 +14,9 @@ public class LimiteGastosService {
     @Autowired
     private LimiteGastosRepository limiteGastosRepository;
 
+    @Autowired
+    private HistoricoService historicoService;
+
     public List<LimiteGastosDTO> listarTodos() {
         return limiteGastosRepository.findAll().stream()
                 .map(this::converterParaDTO)
@@ -34,11 +37,41 @@ public class LimiteGastosService {
 
     public LimiteGastosDTO salvar(LimiteGastosDTO limiteGastosDTO) {
         LimiteGastos limiteGastos = converterParaEntidade(limiteGastosDTO);
-        return converterParaDTO(limiteGastosRepository.save(limiteGastos));
+        LimiteGastos salvos = limiteGastosRepository.save(limiteGastos);
+        
+        // Registrar no histórico
+        try {
+            if (limiteGastosDTO.getId() == null) {
+                // Criação
+                historicoService.registrarCriacaoLimiteGastos(salvos.getId(), salvos.toString(), null);
+            } else {
+                // Edição
+                historicoService.registrarEdicaoLimiteGastos(salvos.getId(), salvos.toString(), null);
+            }
+        } catch (Exception e) {
+            // Log do erro mas não falha a operação principal
+            System.err.println("Erro ao registrar histórico: " + e.getMessage());
+        }
+        
+        return converterParaDTO(salvos);
     }
 
     public void excluir(Long id) {
-        limiteGastosRepository.deleteById(id);
+        try {
+            // Buscar o limite de gastos antes de excluir para registrar no histórico
+            LimiteGastos limiteGastos = limiteGastosRepository.findById(id).orElse(null);
+            
+            limiteGastosRepository.deleteById(id);
+            
+            // Registrar exclusão no histórico
+            if (limiteGastos != null) {
+                historicoService.registrarExclusaoLimiteGastos(id, limiteGastos.toString(), null);
+            }
+        } catch (Exception e) {
+            // Log do erro
+            System.err.println("Erro ao excluir limite de gastos ou registrar histórico: " + e.getMessage());
+            throw e;
+        }
     }
 
     private LimiteGastosDTO converterParaDTO(LimiteGastos limiteGastos) {

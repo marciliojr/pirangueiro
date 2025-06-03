@@ -10,5 +10,8 @@ public class HistoricoDTO {
     private Historico.TipoOperacao tipoOperacao;
     private String entidade;
     private Long entidadeId;
+    private Long usuarioId;
+    private String usuarioNome;
+    private String info;
     private LocalDateTime dataHora;
 } 

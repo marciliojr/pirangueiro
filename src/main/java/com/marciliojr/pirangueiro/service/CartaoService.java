@@ -22,6 +22,9 @@ public class CartaoService {
     @Autowired
     private DespesaService despesaService;
 
+    @Autowired
+    private HistoricoService historicoService;
+
     public List<CartaoDTO> listarTodos() {
         return cartaoRepository.findAll().stream().map(this::converterParaDTO).collect(Collectors.toList());
     }
@@ -36,7 +39,23 @@ public class CartaoService {
 
     public CartaoDTO salvar(CartaoDTO cartaoDTO) {
         Cartao cartao = converterParaEntidade(cartaoDTO);
-        return converterParaDTO(cartaoRepository.save(cartao));
+        Cartao salvo = cartaoRepository.save(cartao);
+        
+        // Registrar no histórico
+        try {
+            if (cartaoDTO.getId() == null) {
+                // Criação
+                historicoService.registrarCriacaoCartao(salvo.getId(), salvo.toString(), null);
+            } else {
+                // Edição
+                historicoService.registrarEdicaoCartao(salvo.getId(), salvo.toString(), null);
+            }
+        } catch (Exception e) {
+            // Log do erro mas não falha a operação principal
+            System.err.println("Erro ao registrar histórico: " + e.getMessage());
+        }
+        
+        return converterParaDTO(salvo);
     }
 
     public CartaoDTO atualizar(CartaoDTO cartaoDTO) {
@@ -51,40 +70,65 @@ public class CartaoService {
             throw new NegocioException("Erro ao Atualizar", "422", "Limite do cartão não pode ser menor que o limite usado.");
         }
 
-        return converterParaDTO(cartaoRepository.save(cartao));
+        Cartao salvo = cartaoRepository.save(cartao);
+        
+        // Registrar edição no histórico
+        try {
+            historicoService.registrarEdicaoCartao(salvo.getId(), salvo.toString(), null);
+        } catch (Exception e) {
+            // Log do erro mas não falha a operação principal
+            System.err.println("Erro ao registrar histórico: " + e.getMessage());
+        }
+
+        return converterParaDTO(salvo);
     }
 
     public void excluir(Long id, boolean manterDespesas) {
-        if (manterDespesas) {
-            List<Despesa> despesas = despesaService.buscarDespesasPorCartao(id);
-            String nomeCartao = despesas.stream()
-                    .map(Despesa::getCartao)
-                    .filter(Objects::nonNull)
-                    .map(Cartao::getNome)
-                    .findFirst()
-                    .orElse("");
+        try {
+            // Buscar o cartão antes de excluir para registrar no histórico
+            Cartao cartao = cartaoRepository.findById(id).orElse(null);
+            
+            if (manterDespesas) {
+                List<Despesa> despesas = despesaService.buscarDespesasPorCartao(id);
+                String nomeCartao = despesas.stream()
+                        .map(Despesa::getCartao)
+                        .filter(Objects::nonNull)
+                        .map(Cartao::getNome)
+                        .findFirst()
+                        .orElse("");
 
-            double valorTotalDespesas = despesas.stream()
-                    .mapToDouble(Despesa::getValor)
-                    .sum();
+                double valorTotalDespesas = despesas.stream()
+                        .mapToDouble(Despesa::getValor)
+                        .sum();
 
-            LocalDate dataCompra = despesas.stream()
-                    .map(Despesa::getData)
-                    .findFirst()
-                    .orElse(null);
+                LocalDate dataCompra = despesas.stream()
+                        .map(Despesa::getData)
+                        .findFirst()
+                        .orElse(null);
 
-            despesas.forEach(despesa -> despesaService.excluir(despesa.getId()));
+                despesas.forEach(despesa -> despesaService.excluir(despesa.getId()));
 
-            Despesa despesaHistorica = new Despesa();
-            despesaHistorica.setDescricao("Registro historico das despesas do cartão " + nomeCartao);
-            despesaHistorica.setValor(valorTotalDespesas);
-            despesaHistorica.setObservacao("Despesa para mostrar que o cartão foi excluído e manter o historico");
-            despesaHistorica.setData(dataCompra);
-            despesaService.salvar(despesaHistorica);
-        } else {
-            validarExclusao(id);
+                Despesa despesaHistorica = new Despesa();
+                despesaHistorica.setDescricao("Registro historico das despesas do cartão " + nomeCartao);
+                despesaHistorica.setValor(valorTotalDespesas);
+                despesaHistorica.setObservacao("Despesa para mostrar que o cartão foi excluído e manter o historico");
+                despesaHistorica.setData(dataCompra);
+                despesaService.salvar(despesaHistorica);
+            } else {
+                validarExclusao(id);
+            }
+            
+            cartaoRepository.deleteById(id);
+            
+            // Registrar exclusão no histórico
+            if (cartao != null) {
+                historicoService.registrarExclusaoCartao(id, cartao.toString(), null);
+            }
+        } catch (Exception e) {
+            // Log do erro
+            System.err.println("Erro ao excluir cartão ou registrar histórico: " + e.getMessage());
+            throw e;
         }
-        cartaoRepository.deleteById(id);
     }
 
     public void validarExclusao(Long id) {

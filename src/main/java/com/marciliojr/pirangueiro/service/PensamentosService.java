@@ -15,6 +15,9 @@ public class PensamentosService {
     @Autowired
     private PensamentosRepository pensamentosRepository;
 
+    @Autowired
+    private HistoricoService historicoService;
+
     public String obterMensagemDoDia() {
         return pensamentosRepository.findRandomPensamento()
                 .map(Pensamentos::getTexto)
@@ -35,11 +38,41 @@ public class PensamentosService {
 
     public PensamentosDTO salvar(PensamentosDTO pensamentosDTO) {
         Pensamentos pensamentos = converterParaEntidade(pensamentosDTO);
-        return converterParaDTO(pensamentosRepository.save(pensamentos));
+        Pensamentos salvos = pensamentosRepository.save(pensamentos);
+        
+        // Registrar no histórico
+        try {
+            if (pensamentosDTO.getId() == null) {
+                // Criação
+                historicoService.registrarCriacaoPensamentos(salvos.getId(), salvos.toString(), null);
+            } else {
+                // Edição
+                historicoService.registrarEdicaoPensamentos(salvos.getId(), salvos.toString(), null);
+            }
+        } catch (Exception e) {
+            // Log do erro mas não falha a operação principal
+            System.err.println("Erro ao registrar histórico: " + e.getMessage());
+        }
+        
+        return converterParaDTO(salvos);
     }
 
     public void excluir(Long id) {
-        pensamentosRepository.deleteById(id);
+        try {
+            // Buscar o pensamento antes de excluir para registrar no histórico
+            Pensamentos pensamentos = pensamentosRepository.findById(id).orElse(null);
+            
+            pensamentosRepository.deleteById(id);
+            
+            // Registrar exclusão no histórico
+            if (pensamentos != null) {
+                historicoService.registrarExclusaoPensamentos(id, pensamentos.toString(), null);
+            }
+        } catch (Exception e) {
+            // Log do erro
+            System.err.println("Erro ao excluir pensamento ou registrar histórico: " + e.getMessage());
+            throw e;
+        }
     }
 
     private PensamentosDTO converterParaDTO(Pensamentos pensamentos) {

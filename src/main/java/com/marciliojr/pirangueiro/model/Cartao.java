@@ -22,4 +22,18 @@ public class Cartao {
     private Integer diaFechamento;
 
     private Integer diaVencimento;
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Cartao{");
+        sb.append("id=").append(id);
+        sb.append(", nome='").append(nome).append('\'');
+        sb.append(", limite=").append(limite);
+        sb.append(", limiteUsado=").append(limiteUsado);
+        sb.append(", diaFechamento=").append(diaFechamento);
+        sb.append(", diaVencimento=").append(diaVencimento);
+        sb.append('}');
+        return sb.toString();
+    }
 } 

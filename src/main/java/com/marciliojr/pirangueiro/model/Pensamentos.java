@@ -15,4 +15,16 @@ public class Pensamentos {
 
     @Column(columnDefinition = "TEXT")
     private String texto;
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Pensamentos{");
+        sb.append("id=").append(id);
+        sb.append(", texto='").append(texto != null && texto.length() > 50 
+            ? texto.substring(0, 50) + "..." 
+            : texto).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 } 

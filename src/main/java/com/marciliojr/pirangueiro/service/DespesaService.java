@@ -31,6 +31,9 @@ public class DespesaService {
     @Autowired
     private CartaoRepository cartaoRepository;
 
+    @Autowired
+    private HistoricoService historicoService;
+
     public List<DespesaDTO> listarTodas() {
         return despesaRepository.findAllWithRelationships().stream()
                 .map(this::converterParaDTO)
@@ -62,8 +65,25 @@ public class DespesaService {
         if (despesaDTO.getQuantidadeParcelas() != null && despesaDTO.getQuantidadeParcelas() > 1) {
             return salvarDespesaParcelada(despesaDTO);
         }
+        
         Despesa despesa = converterParaEntidade(despesaDTO);
-        return converterParaDTO(despesaRepository.save(despesa));
+        Despesa salva = despesaRepository.save(despesa);
+        
+        // Registrar no histórico
+        try {
+            if (despesaDTO.getId() == null) {
+                // Criação
+                historicoService.registrarCriacaoDespesa(salva.getId(), salva.toString(), null);
+            } else {
+                // Edição
+                historicoService.registrarEdicaoDespesa(salva.getId(), salva.toString(), null);
+            }
+        } catch (Exception e) {
+            // Log do erro mas não falha a operação principal
+            System.err.println("Erro ao registrar histórico: " + e.getMessage());
+        }
+        
+        return converterParaDTO(salva);
     }
 
     public void salvar(Despesa despesa) {
@@ -72,7 +92,21 @@ public class DespesaService {
 
 
     public void excluir(Long id) {
-        despesaRepository.deleteById(id);
+        try {
+            // Buscar a despesa antes de excluir para registrar no histórico
+            Despesa despesa = despesaRepository.findById(id).orElse(null);
+            
+            despesaRepository.deleteById(id);
+            
+            // Registrar exclusão no histórico
+            if (despesa != null) {
+                historicoService.registrarExclusaoDespesa(id, despesa.toString(), null);
+            }
+        } catch (Exception e) {
+            // Log do erro
+            System.err.println("Erro ao excluir despesa ou registrar histórico: " + e.getMessage());
+            throw e;
+        }
     }
 
     public List<DespesaDTO> buscarPorDescricaoContaCartaoData(String descricao, Long contaId, Long cartaoId, LocalDate data) {

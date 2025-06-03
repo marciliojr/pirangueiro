@@ -23,4 +23,19 @@ public class Notificacao {
     @ManyToOne
     @JoinColumn(name = "cartao_id", nullable = false)
     private Cartao cartao;
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Notificacao{");
+        sb.append("id=").append(id);
+        sb.append(", mensagem='").append(mensagem).append('\'');
+        sb.append(", dataGeracao=").append(dataGeracao);
+        sb.append(", lida=").append(lida);
+        if (cartao != null) {
+            sb.append(", cartao='").append(cartao.getNome()).append('\'');
+        }
+        sb.append('}');
+        return sb.toString();
+    }
 } 

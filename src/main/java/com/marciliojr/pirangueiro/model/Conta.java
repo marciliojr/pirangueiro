@@ -22,4 +22,16 @@ public class Conta {
     @Lob
     @Column(name = "imagem_logo", columnDefinition = "LONGBLOB")
     private byte[] imagemLogo;
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Conta{");
+        sb.append("id=").append(id);
+        sb.append(", nome='").append(nome).append('\'');
+        sb.append(", tipo=").append(tipo);
+        sb.append(", temImagem=").append(imagemLogo != null && imagemLogo.length > 0);
+        sb.append('}');
+        return sb.toString();
+    }
 } 

@@ -18,6 +18,9 @@ public class ContaService {
     @Autowired
     private ContaRepository contaRepository;
 
+    @Autowired
+    private HistoricoService historicoService;
+
     public List<ContaDTO> listarTodas() {
         return contaRepository.findAll().stream()
                 .map(this::converterParaDTO)
@@ -44,7 +47,23 @@ public class ContaService {
             }
             
             Conta conta = converterParaEntidade(contaDTO);
-            return converterParaDTO(contaRepository.save(conta));
+            Conta salva = contaRepository.save(conta);
+            
+            // Registrar no histórico
+            try {
+                if (contaDTO.getId() == null) {
+                    // Criação
+                    historicoService.registrarCriacaoConta(salva.getId(), salva.toString(), null);
+                } else {
+                    // Edição
+                    historicoService.registrarEdicaoConta(salva.getId(), salva.toString(), null);
+                }
+            } catch (Exception e) {
+                // Log do erro mas não falha a operação principal
+                System.err.println("Erro ao registrar histórico: " + e.getMessage());
+            }
+            
+            return converterParaDTO(salva);
         } catch (Exception e) {
             throw new RuntimeException("Erro ao processar a imagem: " + e.getMessage());
         }
@@ -60,7 +79,21 @@ public class ContaService {
             throw new NegocioException("Não é possível excluir a conta, pois existem despesas associadas a ela.");
         }
 
-        contaRepository.deleteById(id);
+        try {
+            // Buscar a conta antes de excluir para registrar no histórico
+            Conta conta = contaRepository.findById(id).orElse(null);
+            
+            contaRepository.deleteById(id);
+            
+            // Registrar exclusão no histórico
+            if (conta != null) {
+                historicoService.registrarExclusaoConta(id, conta.toString(), null);
+            }
+        } catch (Exception e) {
+            // Log do erro
+            System.err.println("Erro ao excluir conta ou registrar histórico: " + e.getMessage());
+            throw e;
+        }
     }
 
     public SaldoContaDTO calcularSaldoConta(Long contaId, Integer mes, Integer ano) {

@@ -44,4 +44,32 @@ public class Despesa {
 
     @Column(nullable = true)
     private Boolean pago;
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Despesa{");
+        sb.append("id=").append(id);
+        sb.append(", descricao='").append(descricao).append('\'');
+        sb.append(", valor=").append(valor);
+        sb.append(", data=").append(data);
+        if (conta != null) {
+            sb.append(", conta='").append(conta.getNome()).append('\'');
+        }
+        if (cartao != null) {
+            sb.append(", cartao='").append(cartao.getNome()).append('\'');
+        }
+        if (categoria != null) {
+            sb.append(", categoria='").append(categoria.getNome()).append('\'');
+        }
+        if (numeroParcela != null && totalParcelas != null) {
+            sb.append(", parcela=").append(numeroParcela).append("/").append(totalParcelas);
+        }
+        sb.append(", pago=").append(pago);
+        if (observacao != null && !observacao.trim().isEmpty()) {
+            sb.append(", observacao='").append(observacao).append('\'');
+        }
+        sb.append('}');
+        return sb.toString();
+    }
 } 

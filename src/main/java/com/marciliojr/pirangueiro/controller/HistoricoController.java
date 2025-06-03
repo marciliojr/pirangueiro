@@ -118,7 +118,15 @@ public class HistoricoController {
         dto.setTipoOperacao(historico.getTipoOperacao());
         dto.setEntidade(historico.getEntidade());
         dto.setEntidadeId(historico.getEntidadeId());
+        dto.setInfo(historico.getInfo());
         dto.setDataHora(historico.getDataHora());
+        
+        // Incluir informações do usuário se existir
+        if (historico.getUsuario() != null) {
+            dto.setUsuarioId(historico.getUsuario().getId());
+            dto.setUsuarioNome(historico.getUsuario().getNome());
+        }
+        
         return dto;
     }
 } 

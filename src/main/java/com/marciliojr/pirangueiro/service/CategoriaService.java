@@ -16,6 +16,9 @@ public class CategoriaService {
     @Autowired
     private CategoriaRepository categoriaRepository;
 
+    @Autowired
+    private HistoricoService historicoService;
+
     public List<CategoriaDTO> listarTodas() {
         return categoriaRepository.findAll().stream()
                 .sorted(Comparator.comparing(Categoria::getTipoReceita).reversed())
@@ -37,11 +40,41 @@ public class CategoriaService {
 
     public CategoriaDTO salvar(CategoriaDTO categoriaDTO) {
         Categoria categoria = converterParaEntidade(categoriaDTO);
-        return converterParaDTO(categoriaRepository.save(categoria));
+        Categoria salva = categoriaRepository.save(categoria);
+        
+        // Registrar no histórico
+        try {
+            if (categoriaDTO.getId() == null) {
+                // Criação
+                historicoService.registrarCriacaoCategoria(salva.getId(), salva.toString(), null);
+            } else {
+                // Edição
+                historicoService.registrarEdicaoCategoria(salva.getId(), salva.toString(), null);
+            }
+        } catch (Exception e) {
+            // Log do erro mas não falha a operação principal
+            System.err.println("Erro ao registrar histórico: " + e.getMessage());
+        }
+        
+        return converterParaDTO(salva);
     }
 
     public void excluir(Long id) {
-        categoriaRepository.deleteById(id);
+        try {
+            // Buscar a categoria antes de excluir para registrar no histórico
+            Categoria categoria = categoriaRepository.findById(id).orElse(null);
+            
+            categoriaRepository.deleteById(id);
+            
+            // Registrar exclusão no histórico
+            if (categoria != null) {
+                historicoService.registrarExclusaoCategoria(id, categoria.toString(), null);
+            }
+        } catch (Exception e) {
+            // Log do erro
+            System.err.println("Erro ao excluir categoria ou registrar histórico: " + e.getMessage());
+            throw e;
+        }
     }
 
     public List<CategoriaDTO> buscarPorTipoReceita(Boolean tipoReceita) {

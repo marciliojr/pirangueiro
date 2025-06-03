@@ -7,6 +7,7 @@ import com.marciliojr.pirangueiro.repository.CartaoRepository;
 import com.marciliojr.pirangueiro.repository.ExecucaoTarefaRepository;
 import com.marciliojr.pirangueiro.repository.NotificacaoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -26,6 +27,9 @@ public class NotificacaoService {
     private final CartaoRepository cartaoRepository;
     private final NotificacaoRepository notificacaoRepository;
     private final ExecucaoTarefaRepository execucaoTarefaRepository;
+
+    @Autowired
+    private HistoricoService historicoService;
 
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
@@ -76,7 +80,15 @@ public class NotificacaoService {
         notificacao.setMensagem(mensagem);
         notificacao.setDataGeracao(LocalDateTime.now());
         notificacao.setLida(false);
-        notificacaoRepository.save(notificacao);
+        Notificacao salva = notificacaoRepository.save(notificacao);
+        
+        // Registrar criação no histórico
+        try {
+            historicoService.registrarCriacaoNotificacao(salva.getId(), salva.toString(), null);
+        } catch (Exception e) {
+            // Log do erro mas não falha a operação principal
+            System.err.println("Erro ao registrar histórico: " + e.getMessage());
+        }
     }
 
     @Transactional
@@ -88,7 +100,35 @@ public class NotificacaoService {
     public void marcarComoLida(Long notificacaoId) {
         notificacaoRepository.findById(notificacaoId).ifPresent(notificacao -> {
             notificacao.setLida(true);
-            notificacaoRepository.save(notificacao);
+            Notificacao salva = notificacaoRepository.save(notificacao);
+            
+            // Registrar edição no histórico
+            try {
+                historicoService.registrarEdicaoNotificacao(salva.getId(), salva.toString(), null);
+            } catch (Exception e) {
+                // Log do erro mas não falha a operação principal
+                System.err.println("Erro ao registrar histórico: " + e.getMessage());
+            }
         });
+    }
+
+    // Método adicional para exclusão de notificações
+    @Transactional
+    public void excluirNotificacao(Long notificacaoId) {
+        try {
+            // Buscar a notificação antes de excluir para registrar no histórico
+            Notificacao notificacao = notificacaoRepository.findById(notificacaoId).orElse(null);
+            
+            notificacaoRepository.deleteById(notificacaoId);
+            
+            // Registrar exclusão no histórico
+            if (notificacao != null) {
+                historicoService.registrarExclusaoNotificacao(notificacaoId, notificacao.toString(), null);
+            }
+        } catch (Exception e) {
+            // Log do erro
+            System.err.println("Erro ao excluir notificação ou registrar histórico: " + e.getMessage());
+            throw e;
+        }
     }
 } 

@@ -18,4 +18,16 @@ public class Categoria {
     private String cor;
 
     private Boolean tipoReceita;
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Categoria{");
+        sb.append("id=").append(id);
+        sb.append(", nome='").append(nome).append('\'');
+        sb.append(", cor='").append(cor).append('\'');
+        sb.append(", tipoReceita=").append(tipoReceita);
+        sb.append('}');
+        return sb.toString();
+    }
 } 

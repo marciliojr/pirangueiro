@@ -19,4 +19,16 @@ public class LimiteGastos {
     private Double valor;
 
     private LocalDate data;
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("LimiteGastos{");
+        sb.append("id=").append(id);
+        sb.append(", descricao='").append(descricao).append('\'');
+        sb.append(", valor=").append(valor);
+        sb.append(", data=").append(data);
+        sb.append('}');
+        return sb.toString();
+    }
 } 

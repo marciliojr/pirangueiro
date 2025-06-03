@@ -14,6 +14,9 @@ public class UsuarioService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private HistoricoService historicoService;
+
     public List<Usuario> listarTodos() {
         return usuarioRepository.findAll();
     }
@@ -31,14 +34,46 @@ public class UsuarioService {
         if (usuario.getId() == null && usuarioRepository.existsByNome(usuario.getNome())) {
             throw new RuntimeException("Já existe um usuário com este nome");
         }
-        return usuarioRepository.save(usuario);
+        
+        Usuario salvo = usuarioRepository.save(usuario);
+        
+        // Registrar no histórico
+        try {
+            if (usuario.getId() == null) {
+                // Criação
+                historicoService.registrarCriacaoUsuario(salvo.getId(), salvo.toString(), null);
+            } else {
+                // Edição
+                historicoService.registrarEdicaoUsuario(salvo.getId(), salvo.toString(), null);
+            }
+        } catch (Exception e) {
+            // Log do erro mas não falha a operação principal
+            System.err.println("Erro ao registrar histórico: " + e.getMessage());
+        }
+        
+        return salvo;
     }
 
     public void excluir(Long id) {
         if (!usuarioRepository.existsById(id)) {
             throw new RuntimeException("Usuário não encontrado");
         }
-        usuarioRepository.deleteById(id);
+        
+        try {
+            // Buscar o usuário antes de excluir para registrar no histórico
+            Usuario usuario = usuarioRepository.findById(id).orElse(null);
+            
+            usuarioRepository.deleteById(id);
+            
+            // Registrar exclusão no histórico
+            if (usuario != null) {
+                historicoService.registrarExclusaoUsuario(id, usuario.toString(), null);
+            }
+        } catch (Exception e) {
+            // Log do erro
+            System.err.println("Erro ao excluir usuário ou registrar histórico: " + e.getMessage());
+            throw e;
+        }
     }
 
     public boolean existePorNome(String nome) {

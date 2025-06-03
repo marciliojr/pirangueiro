@@ -26,6 +26,9 @@ public class ReceitaService {
     @Autowired
     private ContaService contaService;
 
+    @Autowired
+    private HistoricoService historicoService;
+
     public List<ReceitaDTO> listarTodas() {
         return receitaRepository.findAllWithRelationships().stream()
                 .map(this::converterParaDTO)
@@ -52,11 +55,41 @@ public class ReceitaService {
 
     public ReceitaDTO salvar(ReceitaDTO receitaDTO) {
         Receita receita = converterParaEntidade(receitaDTO);
-        return converterParaDTO(receitaRepository.save(receita));
+        Receita salva = receitaRepository.save(receita);
+        
+        // Registrar no histórico
+        try {
+            if (receitaDTO.getId() == null) {
+                // Criação
+                historicoService.registrarCriacaoReceita(salva.getId(), salva.toString(), null);
+            } else {
+                // Edição
+                historicoService.registrarEdicaoReceita(salva.getId(), salva.toString(), null);
+            }
+        } catch (Exception e) {
+            // Log do erro mas não falha a operação principal
+            System.err.println("Erro ao registrar histórico: " + e.getMessage());
+        }
+        
+        return converterParaDTO(salva);
     }
 
     public void excluir(Long id) {
-        receitaRepository.deleteById(id);
+        try {
+            // Buscar a receita antes de excluir para registrar no histórico
+            Receita receita = receitaRepository.findById(id).orElse(null);
+            
+            receitaRepository.deleteById(id);
+            
+            // Registrar exclusão no histórico
+            if (receita != null) {
+                historicoService.registrarExclusaoReceita(id, receita.toString(), null);
+            }
+        } catch (Exception e) {
+            // Log do erro
+            System.err.println("Erro ao excluir receita ou registrar histórico: " + e.getMessage());
+            throw e;
+        }
     }
 
     public Double buscarTotalReceitas() {

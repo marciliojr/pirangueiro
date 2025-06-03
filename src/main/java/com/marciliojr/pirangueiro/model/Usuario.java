@@ -18,4 +18,15 @@ public class Usuario {
 
     @Column(nullable = false)
     private String senha;
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Usuario{");
+        sb.append("id=").append(id);
+        sb.append(", nome='").append(nome).append('\'');
+        // Não inclui a senha por questões de segurança
+        sb.append('}');
+        return sb.toString();
+    }
 } 
