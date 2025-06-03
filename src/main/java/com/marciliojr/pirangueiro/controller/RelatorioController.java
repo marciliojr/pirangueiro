@@ -35,15 +35,50 @@ public class RelatorioController {
 
     /**
      * Gera relatório gerencial completo das finanças
+     * @param mes Mês para filtrar (opcional, de 1 a 12)
+     * @param ano Ano para filtrar (opcional, ex: 2024)
      * @return Relatório detalhado com todas as informações financeiras organizadas
      */
     @GetMapping("/gerencial")
-    public ResponseEntity<Map<String, Object>> gerarRelatorioGerencial() {
+    public ResponseEntity<Map<String, Object>> gerarRelatorioGerencial(
+            @RequestParam(required = false) Integer mes,
+            @RequestParam(required = false) Integer ano) {
         try {
-            RelatorioGerencialDTO relatorio = relatorioGerencialService.gerarRelatorioCompleto();
+            // Validar parâmetros
+            if (mes != null && (mes < 1 || mes > 12)) {
+                Map<String, Object> erro = new HashMap<>();
+                erro.put("erro", "Mês inválido. Deve estar entre 1 e 12");
+                erro.put("timestamp", LocalDateTime.now());
+                return ResponseEntity.badRequest().body(erro);
+            }
+            
+            if (ano != null && (ano < 1900 || ano > 2100)) {
+                Map<String, Object> erro = new HashMap<>();
+                erro.put("erro", "Ano inválido. Deve estar entre 1900 e 2100");
+                erro.put("timestamp", LocalDateTime.now());
+                return ResponseEntity.badRequest().body(erro);
+            }
+
+            RelatorioGerencialDTO relatorio = relatorioGerencialService.gerarRelatorioCompleto(mes, ano);
             
             // Estrutura organizada do relatório para o frontend
             Map<String, Object> relatorioFormatado = estruturarRelatorioParaFrontend(relatorio);
+            
+            // Adicionar informações do período filtrado
+            Map<String, Object> filtro = new HashMap<>();
+            if (mes != null && ano != null) {
+                filtro.put("periodo", "Mês " + mes + "/" + ano);
+                filtro.put("tipo", "MENSAL");
+            } else if (ano != null) {
+                filtro.put("periodo", "Ano " + ano);
+                filtro.put("tipo", "ANUAL");
+            } else {
+                filtro.put("periodo", "Todos os registros");
+                filtro.put("tipo", "COMPLETO");
+            }
+            filtro.put("mes", mes);
+            filtro.put("ano", ano);
+            relatorioFormatado.put("filtro", filtro);
             
             return ResponseEntity.ok(relatorioFormatado);
         } catch (Exception e) {
@@ -58,15 +93,33 @@ public class RelatorioController {
 
     /**
      * Gera relatório gerencial em formato JSON para exportação
+     * @param mes Mês para filtrar (opcional, de 1 a 12)
+     * @param ano Ano para filtrar (opcional, ex: 2024)
      * @return Arquivo JSON com o relatório completo
      */
     @GetMapping("/gerencial/export/json")
-    public ResponseEntity<RelatorioGerencialDTO> exportarRelatorioJson() {
+    public ResponseEntity<RelatorioGerencialDTO> exportarRelatorioJson(
+            @RequestParam(required = false) Integer mes,
+            @RequestParam(required = false) Integer ano) {
         try {
-            RelatorioGerencialDTO relatorio = relatorioGerencialService.gerarRelatorioCompleto();
+            // Validar parâmetros
+            if (mes != null && (mes < 1 || mes > 12)) {
+                return ResponseEntity.badRequest().build();
+            }
             
-            String nomeArquivo = "relatorio_gerencial_" + 
-                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".json";
+            if (ano != null && (ano < 1900 || ano > 2100)) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            RelatorioGerencialDTO relatorio = relatorioGerencialService.gerarRelatorioCompleto(mes, ano);
+            
+            String nomeArquivo = "relatorio_gerencial";
+            if (mes != null && ano != null) {
+                nomeArquivo += "_" + String.format("%02d_%04d", mes, ano);
+            } else if (ano != null) {
+                nomeArquivo += "_" + ano;
+            }
+            nomeArquivo += "_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".json";
             
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -82,15 +135,51 @@ public class RelatorioController {
 
     /**
      * Gera relatório resumido com apenas indicadores principais
+     * @param mes Mês para filtrar (opcional, de 1 a 12)
+     * @param ano Ano para filtrar (opcional, ex: 2024)
      * @return Resumo executivo do relatório
      */
     @GetMapping("/gerencial/resumo")
-    public ResponseEntity<Map<String, Object>> gerarResumoExecutivo() {
+    public ResponseEntity<Map<String, Object>> gerarResumoExecutivo(
+            @RequestParam(required = false) Integer mes,
+            @RequestParam(required = false) Integer ano) {
         try {
-            RelatorioGerencialDTO relatorio = relatorioGerencialService.gerarRelatorioCompleto();
+            // Validar parâmetros
+            if (mes != null && (mes < 1 || mes > 12)) {
+                Map<String, Object> erro = new HashMap<>();
+                erro.put("erro", "Mês inválido. Deve estar entre 1 e 12");
+                erro.put("timestamp", LocalDateTime.now());
+                return ResponseEntity.badRequest().body(erro);
+            }
+            
+            if (ano != null && (ano < 1900 || ano > 2100)) {
+                Map<String, Object> erro = new HashMap<>();
+                erro.put("erro", "Ano inválido. Deve estar entre 1900 e 2100");
+                erro.put("timestamp", LocalDateTime.now());
+                return ResponseEntity.badRequest().body(erro);
+            }
+
+            RelatorioGerencialDTO relatorio = relatorioGerencialService.gerarRelatorioCompleto(mes, ano);
             
             Map<String, Object> resumo = new HashMap<>();
             resumo.put("timestamp", LocalDateTime.now());
+            
+            // Adicionar informações do período filtrado
+            Map<String, Object> filtro = new HashMap<>();
+            if (mes != null && ano != null) {
+                filtro.put("periodo", "Mês " + mes + "/" + ano);
+                filtro.put("tipo", "MENSAL");
+            } else if (ano != null) {
+                filtro.put("periodo", "Ano " + ano);
+                filtro.put("tipo", "ANUAL");
+            } else {
+                filtro.put("periodo", "Todos os registros");
+                filtro.put("tipo", "COMPLETO");
+            }
+            filtro.put("mes", mes);
+            filtro.put("ano", ano);
+            resumo.put("filtro", filtro);
+            
             resumo.put("resumoExecutivo", relatorio.getResumoExecutivo());
             resumo.put("indicadoresPrincipais", extrairIndicadoresPrincipais(relatorio));
             
@@ -99,6 +188,7 @@ public class RelatorioController {
             Map<String, Object> erro = new HashMap<>();
             erro.put("erro", "Falha ao gerar resumo executivo");
             erro.put("detalhes", e.getMessage());
+            erro.put("timestamp", LocalDateTime.now());
             
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(erro);
         }

@@ -114,7 +114,6 @@ public class AdminController {
             @RequestParam String confirmacao) {
         
         Map<String, Object> response = new HashMap<>();
-        Map<String, Long> registrosRemovidos = new HashMap<>();
         
         try {
             // Validar confirmação
@@ -124,101 +123,54 @@ public class AdminController {
                 return ResponseEntity.badRequest().body(response);
             }
             
-            // Contar registros antes da exclusão
-            long totalHistorico = historicoRepository.count();
-            long totalNotificacoes = notificacaoRepository.count();
-            long totalDespesas = despesaRepository.count();
-            long totalReceitas = receitaRepository.count();
-            long totalLimiteGastos = limiteGastosRepository.count();
-            long totalExecucaoTarefa = execucaoTarefaRepository.count();
-            long totalCartoes = cartaoRepository.count();
-            long totalContas = contaRepository.count();
-            long totalCategorias = categoriaRepository.count();
-            long totalUsuarios = usuarioRepository.count();
-            long totalGraficos = graficosRepository.count();
-            long totalPensamentos = pensamentosRepository.count(); // Conta mas não remove
+            // Contar total antes da exclusão
+            long totalGeral = historicoRepository.count() + 
+                             notificacaoRepository.count() + 
+                             despesaRepository.count() + 
+                             receitaRepository.count() + 
+                             limiteGastosRepository.count() + 
+                             execucaoTarefaRepository.count() + 
+                             cartaoRepository.count() + 
+                             contaRepository.count() + 
+                             categoriaRepository.count() + 
+                             usuarioRepository.count() + 
+                             graficosRepository.count();
             
             // Exclusão em ordem respeitando foreign keys
-            
-            // 1. Histórico (referencia Usuario)
             historicoRepository.deleteAll();
-            registrosRemovidos.put("historico", totalHistorico);
-            
-            // 2. Notificações (referencia Cartao)
             notificacaoRepository.deleteAll();
-            registrosRemovidos.put("notificacoes", totalNotificacoes);
-            
-            // 3. Despesas (referencia Conta, Cartao, Categoria)
             despesaRepository.deleteAll();
-            registrosRemovidos.put("despesas", totalDespesas);
-            
-            // 4. Receitas (referencia Conta, Categoria)
             receitaRepository.deleteAll();
-            registrosRemovidos.put("receitas", totalReceitas);
-            
-            // 5. Limite de Gastos
             limiteGastosRepository.deleteAll();
-            registrosRemovidos.put("limiteGastos", totalLimiteGastos);
-            
-            // 6. Execução de Tarefas
             execucaoTarefaRepository.deleteAll();
-            registrosRemovidos.put("execucaoTarefas", totalExecucaoTarefa);
-            
-            // 7. Gráficos
             graficosRepository.deleteAll();
-            registrosRemovidos.put("graficos", totalGraficos);
-            
-            // 8. Cartões
             cartaoRepository.deleteAll();
-            registrosRemovidos.put("cartoes", totalCartoes);
-            
-            // 9. Contas
             contaRepository.deleteAll();
-            registrosRemovidos.put("contas", totalContas);
-            
-            // 10. Categorias
             categoriaRepository.deleteAll();
-            registrosRemovidos.put("categorias", totalCategorias);
-            
-            // 11. Usuários
             usuarioRepository.deleteAll();
-            registrosRemovidos.put("usuarios", totalUsuarios);
-            
-            // PENSAMENTOS NÃO SÃO REMOVIDOS - apenas contados
-            registrosRemovidos.put("pensamentosMANTIDOS", totalPensamentos);
-            
-            // Calcular total de registros removidos (excluindo pensamentos)
-            long totalRemovido = registrosRemovidos.entrySet().stream()
-                    .filter(entry -> !entry.getKey().equals("pensamentosMANTIDOS"))
-                    .mapToLong(Map.Entry::getValue)
-                    .sum();
             
             response.put("sucesso", true);
-            response.put("mensagem", "Base de dados limpa com sucesso! Tabela de pensamentos mantida.");
-            response.put("totalRegistrosRemovidos", totalRemovido);
-            response.put("totalPensamentosMantidos", totalPensamentos);
-            response.put("detalhePorTabela", registrosRemovidos);
-            response.put("tabelasMantidas", new String[]{"pensamentos"});
+            response.put("mensagem", "Base de dados limpa com sucesso!");
+            response.put("totalRegistrosRemovidos", totalGeral);
             
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
             response.put("sucesso", false);
-            response.put("mensagem", "Erro durante a limpeza da base de dados: " + e.getMessage());
-            response.put("erro", e.getClass().getSimpleName());
+            response.put("mensagem", "Erro durante a limpeza da base de dados");
             
             return ResponseEntity.internalServerError().body(response);
         }
     }
     
     /**
-     * Retorna informações sobre o estado atual da base de dados.
+     * Retorna informações básicas sobre o estado atual da base de dados.
      * 
-     * @return ResponseEntity com contadores de registros por tabela
+     * @return ResponseEntity com informações gerais da base de dados
      */
     @Operation(
         summary = "Status da base de dados",
-        description = "Retorna informações sobre a quantidade de registros em cada tabela"
+        description = "Retorna informações básicas sobre a base de dados"
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -230,35 +182,30 @@ public class AdminController {
     public ResponseEntity<Map<String, Object>> statusBaseDados() {
         
         Map<String, Object> response = new HashMap<>();
-        Map<String, Long> contadores = new HashMap<>();
         
         try {
-            contadores.put("historico", historicoRepository.count());
-            contadores.put("notificacoes", notificacaoRepository.count());
-            contadores.put("despesas", despesaRepository.count());
-            contadores.put("receitas", receitaRepository.count());
-            contadores.put("limiteGastos", limiteGastosRepository.count());
-            contadores.put("execucaoTarefas", execucaoTarefaRepository.count());
-            contadores.put("cartoes", cartaoRepository.count());
-            contadores.put("contas", contaRepository.count());
-            contadores.put("categorias", categoriaRepository.count());
-            contadores.put("usuarios", usuarioRepository.count());
-            contadores.put("graficos", graficosRepository.count());
-            contadores.put("pensamentos", pensamentosRepository.count());
-            
-            long totalRegistros = contadores.values().stream()
-                    .mapToLong(Long::longValue)
-                    .sum();
+            long totalRegistros = historicoRepository.count() + 
+                                 notificacaoRepository.count() + 
+                                 despesaRepository.count() + 
+                                 receitaRepository.count() + 
+                                 limiteGastosRepository.count() + 
+                                 execucaoTarefaRepository.count() + 
+                                 cartaoRepository.count() + 
+                                 contaRepository.count() + 
+                                 categoriaRepository.count() + 
+                                 usuarioRepository.count() + 
+                                 graficosRepository.count() + 
+                                 pensamentosRepository.count();
             
             response.put("sucesso", true);
             response.put("totalRegistros", totalRegistros);
-            response.put("contadorPorTabela", contadores);
+            response.put("status", "Operacional");
             
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
             response.put("sucesso", false);
-            response.put("mensagem", "Erro ao obter status da base de dados: " + e.getMessage());
+            response.put("mensagem", "Erro ao obter status da base de dados");
             
             return ResponseEntity.internalServerError().body(response);
         }

@@ -42,27 +42,46 @@ public class RelatorioGerencialService {
     private CategoriaRepository categoriaRepository;
 
     public RelatorioGerencialDTO gerarRelatorioCompleto() {
+        return gerarRelatorioCompleto(null, null);
+    }
+
+    public RelatorioGerencialDTO gerarRelatorioCompleto(Integer mes, Integer ano) {
         RelatorioGerencialDTO relatorio = new RelatorioGerencialDTO();
         
         // Metadata
         relatorio.setDataGeracao(LocalDateTime.now());
         relatorio.setVersao("1.0");
 
-        // Gerar cada seção
-        relatorio.setSecaoDespesas(gerarSecaoDespesas());
-        relatorio.setSecaoReceitas(gerarSecaoReceitas());
-        relatorio.setSecaoSaldosContas(gerarSecaoSaldosContas());
-        relatorio.setSecaoCartoes(gerarSecaoCartoes());
-        relatorio.setSecaoAnaliseCategoria(gerarSecaoAnaliseCategoria());
+        // Gerar cada seção com filtros de período
+        relatorio.setSecaoDespesas(gerarSecaoDespesas(mes, ano));
+        relatorio.setSecaoReceitas(gerarSecaoReceitas(mes, ano));
+        relatorio.setSecaoSaldosContas(gerarSecaoSaldosContas(mes, ano));
+        relatorio.setSecaoCartoes(gerarSecaoCartoes(mes, ano));
+        relatorio.setSecaoAnaliseCategoria(gerarSecaoAnaliseCategoria(mes, ano));
         relatorio.setResumoExecutivo(gerarResumoExecutivo(relatorio));
 
         return relatorio;
     }
 
     private RelatorioGerencialDTO.SecaoDespesas gerarSecaoDespesas() {
+        return gerarSecaoDespesas(null, null);
+    }
+
+    private RelatorioGerencialDTO.SecaoDespesas gerarSecaoDespesas(Integer mes, Integer ano) {
         RelatorioGerencialDTO.SecaoDespesas secao = new RelatorioGerencialDTO.SecaoDespesas();
         
-        List<DespesaDTO> todasDespesas = despesaService.listarTodas();
+        List<DespesaDTO> todasDespesas;
+        if (mes != null && ano != null) {
+            // Filtrar por mês e ano específicos
+            todasDespesas = despesaService.buscarComFiltrosSemPaginar(null, mes, ano);
+        } else if (ano != null) {
+            // Filtrar apenas por ano
+            todasDespesas = despesaService.buscarComFiltrosSemPaginar(null, null, ano);
+        } else {
+            // Sem filtro - todas as despesas
+            todasDespesas = despesaService.listarTodas();
+        }
+        
         secao.setTodasDespesas(todasDespesas);
         secao.setQuantidadeDespesas(todasDespesas.size());
         
@@ -78,9 +97,26 @@ public class RelatorioGerencialService {
     }
 
     private RelatorioGerencialDTO.SecaoReceitas gerarSecaoReceitas() {
+        return gerarSecaoReceitas(null, null);
+    }
+
+    private RelatorioGerencialDTO.SecaoReceitas gerarSecaoReceitas(Integer mes, Integer ano) {
         RelatorioGerencialDTO.SecaoReceitas secao = new RelatorioGerencialDTO.SecaoReceitas();
         
-        List<ReceitaDTO> todasReceitas = receitaService.listarTodas();
+        List<ReceitaDTO> todasReceitas;
+        if (mes != null && ano != null) {
+            // Filtrar por mês e ano específicos
+            todasReceitas = receitaService.buscarPorMesEAno(mes, ano);
+        } else if (ano != null) {
+            // Filtrar apenas por ano - precisaremos filtrar manualmente
+            todasReceitas = receitaService.listarTodas().stream()
+                    .filter(receita -> receita.getData().getYear() == ano)
+                    .collect(Collectors.toList());
+        } else {
+            // Sem filtro - todas as receitas
+            todasReceitas = receitaService.listarTodas();
+        }
+        
         secao.setTodasReceitas(todasReceitas);
         secao.setQuantidadeReceitas(todasReceitas.size());
         
@@ -96,6 +132,10 @@ public class RelatorioGerencialService {
     }
 
     private RelatorioGerencialDTO.SecaoSaldosContas gerarSecaoSaldosContas() {
+        return gerarSecaoSaldosContas(null, null);
+    }
+
+    private RelatorioGerencialDTO.SecaoSaldosContas gerarSecaoSaldosContas(Integer mes, Integer ano) {
         RelatorioGerencialDTO.SecaoSaldosContas secao = new RelatorioGerencialDTO.SecaoSaldosContas();
         
         List<ContaDTO> todasContas = contaService.listarTodas();
@@ -105,7 +145,8 @@ public class RelatorioGerencialService {
         Double totalDespesasGeral = 0.0;
         
         for (ContaDTO conta : todasContas) {
-            SaldoContaDTO saldoConta = contaService.calcularSaldoConta(conta.getId(), null, null);
+            // Usar o filtro de período no cálculo do saldo
+            SaldoContaDTO saldoConta = contaService.calcularSaldoConta(conta.getId(), mes, ano);
             
             RelatorioGerencialDTO.SaldoContaDetalhado detalhe = new RelatorioGerencialDTO.SaldoContaDetalhado();
             detalhe.setContaId(conta.getId());
@@ -138,6 +179,10 @@ public class RelatorioGerencialService {
     }
 
     private RelatorioGerencialDTO.SecaoCartoes gerarSecaoCartoes() {
+        return gerarSecaoCartoes(null, null);
+    }
+
+    private RelatorioGerencialDTO.SecaoCartoes gerarSecaoCartoes(Integer mes, Integer ano) {
         RelatorioGerencialDTO.SecaoCartoes secao = new RelatorioGerencialDTO.SecaoCartoes();
         
         List<CartaoDTO> todosCartoes = cartaoService.listarTodos();
@@ -171,12 +216,30 @@ public class RelatorioGerencialService {
                 detalhe.setStatusUtilizacao("CRITICA");
             }
             
-            // Buscar despesas não pagas do cartão
-            List<DespesaDTO> despesasNaoPagas = despesaService.listarTodas().stream()
-                    .filter(despesa -> despesa.getCartao() != null && 
-                            despesa.getCartao().getId().equals(cartao.getId()) && 
-                            !Boolean.TRUE.equals(despesa.getPago()))
-                    .collect(Collectors.toList());
+            // Buscar despesas não pagas do cartão (o campo 'pago' é usado apenas para limite)
+            List<DespesaDTO> despesasNaoPagas;
+            if (mes != null && ano != null) {
+                // Filtrar despesas não pagas por período específico
+                despesasNaoPagas = despesaService.buscarComFiltrosSemPaginar(null, mes, ano).stream()
+                        .filter(despesa -> despesa.getCartao() != null && 
+                                despesa.getCartao().getId().equals(cartao.getId()) && 
+                                !Boolean.TRUE.equals(despesa.getPago()))
+                        .collect(Collectors.toList());
+            } else if (ano != null) {
+                // Filtrar despesas não pagas apenas por ano
+                despesasNaoPagas = despesaService.buscarComFiltrosSemPaginar(null, null, ano).stream()
+                        .filter(despesa -> despesa.getCartao() != null && 
+                                despesa.getCartao().getId().equals(cartao.getId()) && 
+                                !Boolean.TRUE.equals(despesa.getPago()))
+                        .collect(Collectors.toList());
+            } else {
+                // Todas as despesas não pagas
+                despesasNaoPagas = despesaService.listarTodas().stream()
+                        .filter(despesa -> despesa.getCartao() != null && 
+                                despesa.getCartao().getId().equals(cartao.getId()) && 
+                                !Boolean.TRUE.equals(despesa.getPago()))
+                        .collect(Collectors.toList());
+            }
             detalhe.setDespesasNaoPagas(despesasNaoPagas);
             
             cartoesDetalhados.add(detalhe);
@@ -194,10 +257,28 @@ public class RelatorioGerencialService {
     }
 
     private RelatorioGerencialDTO.SecaoAnaliseCategoria gerarSecaoAnaliseCategoria() {
+        return gerarSecaoAnaliseCategoria(null, null);
+    }
+
+    private RelatorioGerencialDTO.SecaoAnaliseCategoria gerarSecaoAnaliseCategoria(Integer mes, Integer ano) {
         RelatorioGerencialDTO.SecaoAnaliseCategoria secao = new RelatorioGerencialDTO.SecaoAnaliseCategoria();
         
-        List<DespesaDTO> todasDespesas = despesaService.listarTodas();
-        List<ReceitaDTO> todasReceitas = receitaService.listarTodas();
+        // Buscar despesas e receitas filtradas por período
+        List<DespesaDTO> todasDespesas;
+        List<ReceitaDTO> todasReceitas;
+        
+        if (mes != null && ano != null) {
+            todasDespesas = despesaService.buscarComFiltrosSemPaginar(null, mes, ano);
+            todasReceitas = receitaService.buscarPorMesEAno(mes, ano);
+        } else if (ano != null) {
+            todasDespesas = despesaService.buscarComFiltrosSemPaginar(null, null, ano);
+            todasReceitas = receitaService.listarTodas().stream()
+                    .filter(receita -> receita.getData().getYear() == ano)
+                    .collect(Collectors.toList());
+        } else {
+            todasDespesas = despesaService.listarTodas();
+            todasReceitas = receitaService.listarTodas();
+        }
         
         // Análise categorias de despesas
         Map<Long, List<DespesaDTO>> despesasPorCategoria = todasDespesas.stream()
