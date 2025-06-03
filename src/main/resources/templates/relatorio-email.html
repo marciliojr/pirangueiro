@@ -23,6 +23,7 @@
         }
         
         .header {
+            background-color: #2c3e50;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 30px;
@@ -33,12 +34,20 @@
             margin: 0;
             font-size: 28px;
             font-weight: 300;
+            color: white !important;
         }
         
         .header .date {
             font-size: 16px;
             opacity: 0.9;
             margin-top: 10px;
+            color: white !important;
+        }
+        
+        .header .logo {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: white !important;
         }
         
         .content {
@@ -46,32 +55,38 @@
         }
         
         .summary-card {
+            background-color: #28a745 !important;
             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
+            color: white !important;
             padding: 25px;
             border-radius: 8px;
             margin-bottom: 25px;
             text-align: center;
+            border: 2px solid #28a745;
         }
         
         .summary-card h2 {
             margin: 0 0 15px 0;
             font-size: 24px;
             font-weight: 300;
+            color: white !important;
         }
         
         .balance {
             font-size: 36px;
             font-weight: bold;
             margin: 10px 0;
+            color: white !important;
         }
         
         .balance.negative {
-            color: #ff6b6b;
+            color: #ffeb3b !important;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
         
         .balance.positive {
-            color: #51cf66;
+            color: white !important;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
         
         .status {
@@ -81,21 +96,32 @@
             font-size: 14px;
             font-weight: bold;
             margin: 10px 0;
+            border: 2px solid white;
         }
         
         .status.saudavel {
-            background-color: rgba(255,255,255,0.2);
-            color: white;
+            background-color: rgba(255,255,255,0.9) !important;
+            color: #28a745 !important;
+            border: 2px solid white;
         }
         
         .status.atencao {
-            background-color: #ffc107;
-            color: #856404;
+            background-color: #ffc107 !important;
+            color: #856404 !important;
+            border: 2px solid #ffc107;
         }
         
         .status.critica {
-            background-color: #dc3545;
-            color: white;
+            background-color: #dc3545 !important;
+            color: white !important;
+            border: 2px solid #dc3545;
+        }
+        
+        .economia-texto {
+            color: white !important;
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
         
         .metrics-grid {
@@ -111,41 +137,47 @@
             border-radius: 8px;
             border-left: 4px solid #007bff;
             text-align: center;
+            border: 1px solid #dee2e6;
         }
         
         .metric-card.receitas {
             border-left-color: #28a745;
+            border-left-width: 6px;
         }
         
         .metric-card.despesas {
             border-left-color: #dc3545;
+            border-left-width: 6px;
         }
         
         .metric-card.contas {
             border-left-color: #007bff;
+            border-left-width: 6px;
         }
         
         .metric-card.cartoes {
             border-left-color: #fd7e14;
+            border-left-width: 6px;
         }
         
         .metric-title {
             font-size: 14px;
-            color: #6c757d;
+            color: #495057 !important;
             margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 1px;
+            font-weight: bold;
         }
         
         .metric-value {
             font-size: 24px;
             font-weight: bold;
-            color: #333;
+            color: #212529 !important;
         }
         
         .metric-subtitle {
             font-size: 12px;
-            color: #6c757d;
+            color: #6c757d !important;
             margin-top: 5px;
         }
         
@@ -155,43 +187,55 @@
             padding: 20px;
             border-radius: 0 8px 8px 0;
             margin: 25px 0;
+            border: 1px solid #bbdefb;
         }
         
         .recommendation-title {
             font-size: 16px;
             font-weight: bold;
-            color: #1976d2;
+            color: #1976d2 !important;
             margin-bottom: 10px;
+        }
+        
+        .recommendation-text {
+            color: #0d47a1 !important;
+            line-height: 1.5;
         }
         
         .categoria-maior {
             background-color: #f3e5f5;
-            border: 1px solid #9c27b0;
+            border: 2px solid #9c27b0;
             border-radius: 8px;
             padding: 15px;
             margin: 20px 0;
         }
         
         .categoria-title {
-            color: #7b1fa2;
+            color: #7b1fa2 !important;
             font-weight: bold;
             margin-bottom: 5px;
+        }
+        
+        .categoria-content {
+            color: #4a148c !important;
+            font-weight: 500;
         }
         
         .footer {
             background-color: #f8f9fa;
             padding: 20px;
             text-align: center;
-            color: #6c757d;
+            color: #6c757d !important;
             font-size: 14px;
             border-top: 1px solid #dee2e6;
         }
         
-        .logo {
-            font-size: 24px;
-            margin-bottom: 10px;
+        /* Fallbacks para clientes de email que não suportam CSS avançado */
+        table {
+            border-collapse: collapse;
         }
         
+        /* Media queries para responsividade */
         @media (max-width: 600px) {
             .metrics-grid {
                 grid-template-columns: 1fr;
@@ -199,6 +243,17 @@
             
             .balance {
                 font-size: 28px;
+            }
+            
+            body {
+                padding: 10px;
+            }
+        }
+        
+        /* Compatibilidade com Outlook */
+        @media screen and (-webkit-min-device-pixel-ratio: 0) {
+            .summary-card {
+                background-color: #28a745 !important;
             }
         }
     </style>
@@ -227,7 +282,7 @@
                      th:text="${resumoExecutivo.situacaoFinanceira}">
                     SAUDÁVEL
                 </div>
-                <div th:text="'Economia: ' + ${#numbers.formatDecimal(resumoExecutivo.percentualEconomia, 1, 1)} + '%'">
+                <div class="economia-texto" th:text="'Economia: ' + ${#numbers.formatDecimal(resumoExecutivo.percentualEconomia, 1, 1)} + '%'">
                     Economia: 0%
                 </div>
             </div>
@@ -278,7 +333,7 @@
             <!-- Categoria com Maior Despesa -->
             <div class="categoria-maior" th:if="${categoriaMaiorDespesa}">
                 <div class="categoria-title">🎯 Categoria com Maior Despesa</div>
-                <div>
+                <div class="categoria-content">
                     <strong th:text="${categoriaMaiorDespesa.nome}">Categoria</strong>: 
                     R$ <span th:text="${#numbers.formatDecimal(categoriaMaiorDespesa.valor, 1, 2)}">0,00</span>
                     (<span th:text="${#numbers.formatDecimal(categoriaMaiorDespesa.percentual, 1, 1)}">0</span>% do total)
@@ -288,7 +343,7 @@
             <!-- Recomendações -->
             <div class="recommendation">
                 <div class="recommendation-title">💡 Recomendação</div>
-                <div th:text="${resumoExecutivo.recomendacoes}">
+                <div class="recommendation-text" th:text="${resumoExecutivo.recomendacoes}">
                     Carregue o relatório para ver as recomendações
                 </div>
             </div>
