@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificação de Importação de Backup</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .status-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .status-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .details {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .details h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .info-item {
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        .label {
+            font-weight: bold;
+            color: #6c757d;
+            display: inline-block;
+            min-width: 150px;
+        }
+        .value {
+            color: #495057;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .emoji {
+            font-size: 24px;
+        }
+        .error-details {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <span class="emoji" th:text="${sucesso} ? '✅' : '❌'"></span>
+                Sistema Pirangueiro
+            </h1>
+            <h2>Notificação de Importação de Backup</h2>
+        </div>
+
+        <div th:class="${sucesso} ? 'status-success' : 'status-error'">
+            <h3 th:text="${sucesso} ? '🎉 Importação Concluída com Sucesso!' : '⚠️ Erro na Importação'"></h3>
+            <p th:text="${mensagem}"></p>
+        </div>
+
+        <div class="details">
+            <h3>📋 Informações da Operação</h3>
+            
+            <div class="info-item">
+                <span class="label">ID da Operação:</span>
+                <span class="value" th:text="${requestId}"></span>
+            </div>
+            
+            <div class="info-item">
+                <span class="label">Data/Hora:</span>
+                <span class="value" th:text="${dataFinalizacao}"></span>
+            </div>
+            
+            <div class="info-item">
+                <span class="label">Status:</span>
+                <span class="value" th:text="${sucesso} ? 'SUCESSO' : 'ERRO'"></span>
+            </div>
+        </div>
+
+        <!-- Detalhes do backup restaurado (se sucesso) -->
+        <div th:if="${sucesso and totalRegistros != null}" class="details">
+            <h3>📊 Detalhes do Backup Restaurado</h3>
+            
+            <div class="info-item">
+                <span class="label">Total de Registros:</span>
+                <span class="value" th:text="${#numbers.formatInteger(totalRegistros, 0, 'COMMA')} + ' registros'"></span>
+            </div>
+            
+            <div class="info-item" th:if="${versaoBackup != null}">
+                <span class="label">Versão do Backup:</span>
+                <span class="value" th:text="${versaoBackup}"></span>
+            </div>
+            
+            <div class="info-item" th:if="${dataBackup != null}">
+                <span class="label">Data do Backup:</span>
+                <span class="value" th:text="${dataBackup}"></span>
+            </div>
+        </div>
+
+        <!-- Detalhes do erro (se erro) -->
+        <div th:if="${!sucesso}" class="details">
+            <h3>🔍 Detalhes do Erro</h3>
+            
+            <div class="info-item" th:if="${tipoErro != null}">
+                <span class="label">Tipo do Erro:</span>
+                <span class="value" th:text="${tipoErro}"></span>
+            </div>
+            
+            <div th:if="${detalhesErro != null}" class="error-details">
+                <strong>Detalhes Técnicos:</strong><br>
+                <span th:text="${detalhesErro}"></span>
+            </div>
+        </div>
+
+        <!-- Informações adicionais -->
+        <div class="details">
+            <h3>ℹ️ Informações Importantes</h3>
+            
+            <div th:if="${sucesso}">
+                <p>✅ <strong>Todos os dados foram restaurados com sucesso!</strong></p>
+                <p>🔄 O sistema agora contém os dados do backup importado.</p>
+                <p>📱 Você pode acessar o sistema normalmente.</p>
+            </div>
+            
+            <div th:if="${!sucesso}">
+                <p>❌ <strong>A importação falhou.</strong></p>
+                <p>🔒 Seus dados existentes não foram alterados.</p>
+                <p>🛠️ Verifique o arquivo de backup e tente novamente.</p>
+                <p>📞 Se o problema persistir, entre em contato com o suporte técnico.</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>
+                <strong>Sistema de Gestão Financeira Pirangueiro</strong><br>
+                Esta é uma notificação automática. Não responda este email.
+            </p>
+            <p>
+                Gerado automaticamente em <span th:text="${dataFinalizacao}"></span>
+            </p>
+        </div>
+    </div>
+</body>
+</html> 
