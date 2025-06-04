@@ -27,10 +27,13 @@ public class Receita {
     @ManyToOne
     @JoinColumn(name = "categoria_id")
     private Categoria categoria;
-
-    private String anexo;
+    @Lob
+    @Column(name = "anexo", columnDefinition = "LONGBLOB")
+    private byte[] anexo;
 
     private String observacao;
+
+    private String extensaoAnexo;
 
     @Override
     public String toString() {

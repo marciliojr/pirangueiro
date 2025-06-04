@@ -428,7 +428,6 @@ public class BackupService {
         dto.setContaId(despesa.getConta() != null ? despesa.getConta().getId() : null);
         dto.setCartaoId(despesa.getCartao() != null ? despesa.getCartao().getId() : null);
         dto.setCategoriaId(despesa.getCategoria() != null ? despesa.getCategoria().getId() : null);
-        dto.setAnexo(despesa.getAnexo());
         dto.setObservacao(despesa.getObservacao());
         dto.setNumeroParcela(despesa.getNumeroParcela());
         dto.setTotalParcelas(despesa.getTotalParcelas());
@@ -450,7 +449,6 @@ public class BackupService {
         dto.setData(receita.getData());
         dto.setContaId(receita.getConta() != null ? receita.getConta().getId() : null);
         dto.setCategoriaId(receita.getCategoria() != null ? receita.getCategoria().getId() : null);
-        dto.setAnexo(receita.getAnexo());
         dto.setObservacao(receita.getObservacao());
         return dto;
     }
@@ -679,7 +677,6 @@ public class BackupService {
                 despesa.setCategoria(categoriaRepository.findById(novoIdCategoria).orElse(null));
             }
             
-            despesa.setAnexo(dto.getAnexo());
             despesa.setObservacao(dto.getObservacao());
             despesa.setNumeroParcela(dto.getNumeroParcela());
             despesa.setTotalParcelas(dto.getTotalParcelas());
@@ -707,7 +704,6 @@ public class BackupService {
                 receita.setCategoria(categoriaRepository.findById(novoIdCategoria).orElse(null));
             }
             
-            receita.setAnexo(dto.getAnexo());
             receita.setObservacao(dto.getObservacao());
             receitaRepository.save(receita);
         }

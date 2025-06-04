@@ -143,6 +143,7 @@ public class ReceitaService {
         }
 
         dto.setAnexo(receita.getAnexo());
+        dto.setExtensaoAnexo(receita.getExtensaoAnexo());
         dto.setObservacao(receita.getObservacao());
         return dto;
     }
@@ -185,7 +186,7 @@ public class ReceitaService {
             categoria.setId(dto.getCategoria().getId());
             receita.setCategoria(categoria);
         }
-
+        receita.setExtensaoAnexo(dto.getExtensaoAnexo());
         receita.setAnexo(dto.getAnexo());
         receita.setObservacao(dto.getObservacao());
         return receita;

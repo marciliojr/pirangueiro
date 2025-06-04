@@ -11,6 +11,7 @@ public class ReceitaDTO {
     private LocalDate data;
     private ContaDTO conta;
     private CategoriaDTO categoria;
-    private String anexo;
+    private byte[] anexo;
     private String observacao;
+    private String extensaoAnexo;
 } 

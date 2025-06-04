@@ -2,6 +2,7 @@ package com.marciliojr.pirangueiro.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
 import java.time.LocalDate;
 
 /**
@@ -32,7 +33,9 @@ public class Despesa {
     @JoinColumn(name = "categoria_id")
     private Categoria categoria;
 
-    private String anexo;
+    @Lob
+    @Column(name = "anexo", columnDefinition = "LONGBLOB")
+    private byte[] anexo;
 
     private String observacao;
 
@@ -44,6 +47,8 @@ public class Despesa {
 
     @Column(nullable = true)
     private Boolean pago;
+
+    private String extensaoAnexo;
 
     @Override
     public String toString() {

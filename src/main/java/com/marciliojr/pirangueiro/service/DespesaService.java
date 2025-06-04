@@ -232,7 +232,9 @@ public class DespesaService {
             parcela.setCartao(despesaDTO.getCartao());
             parcela.setCategoria(despesaDTO.getCategoria());
             parcela.setAnexo(despesaDTO.getAnexo());
+            parcela.setExtensaoAnexo(despesaDTO.getExtensaoAnexo());
             parcela.setObservacao(despesaDTO.getObservacao());
+            parcela.setExtensaoAnexo(despesaDTO.getExtensaoAnexo());
             parcela.setPago(despesaDTO.getPago());
             parcela.setNumeroParcela(i);
             parcela.setTotalParcelas(quantidadeParcelas);
@@ -275,6 +277,7 @@ public class DespesaService {
 
         dto.setAnexo(despesa.getAnexo());
         dto.setObservacao(despesa.getObservacao());
+        dto.setExtensaoAnexo(despesa.getExtensaoAnexo());
         return dto;
     }
 
@@ -336,7 +339,7 @@ public class DespesaService {
             categoria.setId(dto.getCategoria().getId());
             despesa.setCategoria(categoria);
         }
-
+        despesa.setExtensaoAnexo(dto.getExtensaoAnexo());
         despesa.setAnexo(dto.getAnexo());
         despesa.setObservacao(dto.getObservacao());
         return despesa;
