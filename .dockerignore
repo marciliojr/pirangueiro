@@ -1,0 +1,34 @@
+# Ignorar arquivos de build
+target/
+*.jar
+*.war
+
+# Ignorar arquivos do Git
+.git
+.gitignore
+.gitattributes
+
+# Ignorar arquivos do IDE
+.idea/
+.vscode/
+*.iml
+
+# Ignorar arquivos de log
+*.log
+
+# Ignorar arquivos temporários
+*.tmp
+*.temp
+
+# Ignorar Docker files do contexto
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Ignorar documentação
+README.md
+HELP.md
+
+# Ignorar arquivos do sistema
+.DS_Store
+Thumbs.db 

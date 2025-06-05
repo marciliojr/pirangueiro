@@ -17,7 +17,9 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("API de Controle Financeiro - Pirangueiro")
-                        .description("API RESTful para controle de receitas e gastos pessoais")
+                        .description("API RESTful para controle de receitas e gastos pessoais. " +
+                                   "Esta API fornece endpoints para gerenciar receitas, despesas, " +
+                                   "contas bancárias, categorias e gerar relatórios financeiros.")
                         .version("1.0.0")
                         .contact(new Contact()
                                 .name("Marcilio Jr")
@@ -27,8 +29,14 @@ public class SwaggerConfig {
                                 .url("http://www.apache.org/licenses/LICENSE-2.0.html")))
                 .servers(List.of(
                         new Server()
+                                .url("http://localhost:8080/api")
+                                .description("Servidor Local Docker"),
+                        new Server()
                                 .url("http://localhost:8080")
-                                .description("Servidor Local")
+                                .description("Servidor Local Desenvolvimento"),
+                        new Server()
+                                .url("http://host.docker.internal:8080/api")
+                                .description("Servidor Docker (acesso do host)")
                 ));
     }
 } 

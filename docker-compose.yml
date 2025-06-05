@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  pirangueiro-app:
+    build: .
+    container_name: pirangueiro-backend
+    ports:
+      - "8080:8080"
+    environment:
+      # Configuração para conectar ao banco na máquina host
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://host.docker.internal:3306/pirangueiro
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=321
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.mariadb.jdbc.Driver
+      
+      # Configurações de email (usando variáveis de ambiente)
+      - EMAIL_USERNAME=${EMAIL_USERNAME:-marcilio3@gmail.com}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD:-tiom yiwi cbjo sezd}
+      - RELATORIO_EMAIL_DESTINATARIO=${RELATORIO_EMAIL_DESTINATARIO:-marciliojr@outlook.com.br}
+      - RELATORIO_EMAIL_REMETENTE=${RELATORIO_EMAIL_REMETENTE:-marcilio3@gmail.com}
+      - RELATORIO_EMAIL_ENABLED=${RELATORIO_EMAIL_ENABLED:-false}
+      
+      # Configurações para permitir CORS com frontend
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - pirangueiro-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  pirangueiro-network:
+    driver: bridge 
