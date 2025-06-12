@@ -39,7 +39,6 @@ import java.util.List;
 @Tag(name = "Contas Bancárias", description = "APIs para gerenciamento de contas bancárias")
 @RestController
 @RequestMapping("/api/contas")
-@CrossOrigin(origins = "*")
 public class ContaController {
 
     /**

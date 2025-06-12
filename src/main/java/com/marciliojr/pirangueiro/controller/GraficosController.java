@@ -45,7 +45,6 @@ import java.time.LocalDate;
 @Tag(name = "Gráficos e Analytics", description = "APIs para dados de gráficos e análises financeiras")
 @RestController
 @RequestMapping("/api/graficos")
-@CrossOrigin(origins = "*")
 public class GraficosController {
 
     /**

@@ -26,7 +26,6 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("api/backup")
-@CrossOrigin(origins = "*")
 public class BackupController {
 
     @Autowired
