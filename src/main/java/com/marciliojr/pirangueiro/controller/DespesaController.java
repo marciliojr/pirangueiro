@@ -218,94 +218,6 @@ public class DespesaController {
     }
 
     /**
-     * Gera um relatório em PDF das despesas de um mês e ano específicos.
-     * 
-     * @param mes Mês para o relatório (1-12)
-     * @param ano Ano para o relatório
-     * @return ResponseEntity contendo o PDF gerado como array de bytes
-     */
-    @Operation(
-        summary = "Gerar relatório PDF de despesas por mês e ano",
-        description = "Gera e retorna um relatório em PDF contendo todas as despesas " +
-                     "de um mês e ano específicos."
-    )
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "PDF gerado com sucesso",
-            content = @Content(
-                mediaType = "application/pdf"
-            )
-        ),
-        @ApiResponse(
-            responseCode = "500",
-            description = "Erro interno na geração do PDF",
-            content = @Content
-        )
-    })
-    @GetMapping("/mes/{mes}/ano/{ano}/pdf")
-    public ResponseEntity<byte[]> gerarPDFPorMesEAno(
-            @Parameter(description = "Mês (1-12)", required = true)
-            @PathVariable int mes,
-            @Parameter(description = "Ano", required = true)
-            @PathVariable int ano) {
-        List<DespesaDTO> despesas = despesaService.buscarPorMesEAno(mes, ano);
-        String titulo = String.format("Relatório de Despesas - %d/%d", mes, ano);
-        
-        try {
-            byte[] pdfBytes = pdfGenerator.gerarPDFDespesas(despesas, titulo);
-            
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentDispositionFormData("attachment", String.format("despesas_%d_%d.pdf", mes, ano));
-            
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .body(pdfBytes);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    /**
-     * Busca despesas com filtros avançados por descrição, conta, cartão e data.
-     * 
-     * @param descricao Filtro opcional por descrição
-     * @param contaId Filtro opcional por ID da conta
-     * @param cartaoId Filtro opcional por ID do cartão
-     * @param data Filtro opcional por data específica
-     * @return Lista de DespesaDTO que atendem aos critérios
-     */
-    @Operation(
-        summary = "Buscar despesas com filtros avançados",
-        description = "Busca despesas utilizando múltiplos critérios como descrição, conta, " +
-                     "cartão e data específica."
-    )
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "Despesas encontradas com sucesso",
-            content = @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = DespesaDTO.class)
-            )
-        )
-    })
-    @GetMapping("/buscar-filtro")
-    public List<DespesaDTO> buscarPorDescricaoContaCartaoData(
-            @Parameter(description = "Descrição da despesa")
-            @RequestParam(required = false) String descricao,
-            @Parameter(description = "ID da conta")
-            @RequestParam(required = false) Long contaId,
-            @Parameter(description = "ID do cartão")
-            @RequestParam(required = false) Long cartaoId,
-            @Parameter(description = "Data específica (formato: YYYY-MM-DD)")
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
-        System.out.println("Data: " + data);
-         return despesaService.buscarPorDescricaoContaCartaoData(descricao, contaId, cartaoId, data);
-    }
-
-    /**
      * Cria uma nova despesa no sistema.
      * 
      * <p>A despesa é criada automaticamente como não paga (pago = false).</p>
@@ -434,35 +346,6 @@ public class DespesaController {
     public ResponseEntity<Double> buscarTotalDespesas() {
         ResponseEntity<Double> ok = ResponseEntity.ok(despesaService.buscarTotalDespesas());
         return ok;
-    }
-
-    /**
-     * Marca uma despesa como paga.
-     * 
-     * @param id ID da despesa a ser marcada como paga
-     * @return ResponseEntity vazio confirmando a operação
-     */
-    @Operation(
-        summary = "Marcar despesa como paga",
-        description = "Atualiza o status de uma despesa para 'paga'."
-    )
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "Despesa marcada como paga com sucesso"
-        ),
-        @ApiResponse(
-            responseCode = "404",
-            description = "Despesa não encontrada",
-            content = @Content
-        )
-    })
-    @PutMapping("/despesas/{id}/pagar")
-    public ResponseEntity<Void> marcarComoPaga(
-            @Parameter(description = "ID da despesa a ser marcada como paga", required = true)
-            @PathVariable Long id) {
-        despesaService.marcarDespesaComoPaga(id);
-        return ResponseEntity.ok().build();
     }
 
     /**

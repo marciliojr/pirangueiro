@@ -214,56 +214,6 @@ public class ReceitaController {
     }
 
     /**
-     * Gera um relatório em PDF das receitas de um mês e ano específicos.
-     * 
-     * @param mes Mês para o relatório (1-12)
-     * @param ano Ano para o relatório
-     * @return ResponseEntity contendo o PDF gerado como array de bytes
-     */
-    @Operation(
-        summary = "Gerar relatório PDF de receitas por mês e ano",
-        description = "Gera e retorna um relatório em PDF contendo todas as receitas " +
-                     "de um mês e ano específicos."
-    )
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "PDF gerado com sucesso",
-            content = @Content(
-                mediaType = "application/pdf"
-            )
-        ),
-        @ApiResponse(
-            responseCode = "500",
-            description = "Erro interno na geração do PDF",
-            content = @Content
-        )
-    })
-    @GetMapping("/mes/{mes}/ano/{ano}/pdf")
-    public ResponseEntity<byte[]> gerarPDFPorMesEAno(
-            @Parameter(description = "Mês (1-12)", required = true)
-            @PathVariable int mes,
-            @Parameter(description = "Ano", required = true)
-            @PathVariable int ano) {
-        List<ReceitaDTO> receitas = receitaService.buscarPorMesEAno(mes, ano);
-        String titulo = String.format("Relatório de Receitas - %d/%d", mes, ano);
-        
-        try {
-            byte[] pdfBytes = pdfGenerator.gerarPDFReceitas(receitas, titulo);
-            
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentDispositionFormData("attachment", String.format("receitas_%d_%d.pdf", mes, ano));
-            
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .body(pdfBytes);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    /**
      * Cria uma nova receita no sistema.
      * 
      * @param receitaDTO Dados da receita a ser criada

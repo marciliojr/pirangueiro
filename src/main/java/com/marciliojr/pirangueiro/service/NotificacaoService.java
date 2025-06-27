@@ -91,27 +91,6 @@ public class NotificacaoService {
         }
     }
 
-    @Transactional
-    public List<Notificacao> buscarNotificacoesNaoLidas() {
-        return notificacaoRepository.findByLidaFalseOrderByDataGeracaoDesc();
-    }
-
-    @Transactional
-    public void marcarComoLida(Long notificacaoId) {
-        notificacaoRepository.findById(notificacaoId).ifPresent(notificacao -> {
-            notificacao.setLida(true);
-            Notificacao salva = notificacaoRepository.save(notificacao);
-            
-            // Registrar edição no histórico
-            try {
-                historicoService.registrarEdicaoNotificacao(salva.getId(), salva.toString(), null);
-            } catch (Exception e) {
-                // Log do erro mas não falha a operação principal
-                System.err.println("Erro ao registrar histórico: " + e.getMessage());
-            }
-        });
-    }
-
     // Método adicional para exclusão de notificações
     @Transactional
     public void excluirNotificacao(Long notificacaoId) {

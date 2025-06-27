@@ -17,11 +17,7 @@ public class LimiteGastosService {
     @Autowired
     private HistoricoService historicoService;
 
-    public List<LimiteGastosDTO> listarTodos() {
-        return limiteGastosRepository.findAll().stream()
-                .map(this::converterParaDTO)
-                .collect(Collectors.toList());
-    }
+
 
     public LimiteGastosDTO buscarPorId(Long id) {
         return limiteGastosRepository.findById(id)

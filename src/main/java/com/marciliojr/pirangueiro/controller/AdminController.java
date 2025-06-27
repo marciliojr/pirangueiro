@@ -163,51 +163,5 @@ public class AdminController {
         }
     }
     
-    /**
-     * Retorna informações básicas sobre o estado atual da base de dados.
-     * 
-     * @return ResponseEntity com informações gerais da base de dados
-     */
-    @Operation(
-        summary = "Status da base de dados",
-        description = "Retorna informações básicas sobre a base de dados"
-    )
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "Status retornado com sucesso"
-        )
-    })
-    @GetMapping("/status-base-dados")
-    public ResponseEntity<Map<String, Object>> statusBaseDados() {
-        
-        Map<String, Object> response = new HashMap<>();
-        
-        try {
-            long totalRegistros = historicoRepository.count() + 
-                                 notificacaoRepository.count() + 
-                                 despesaRepository.count() + 
-                                 receitaRepository.count() + 
-                                 limiteGastosRepository.count() + 
-                                 execucaoTarefaRepository.count() + 
-                                 cartaoRepository.count() + 
-                                 contaRepository.count() + 
-                                 categoriaRepository.count() + 
-                                 usuarioRepository.count() + 
-                                 graficosRepository.count() + 
-                                 pensamentosRepository.count();
-            
-            response.put("sucesso", true);
-            response.put("totalRegistros", totalRegistros);
-            response.put("status", "Operacional");
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            response.put("sucesso", false);
-            response.put("mensagem", "Erro ao obter status da base de dados");
-            
-            return ResponseEntity.internalServerError().body(response);
-        }
-    }
+
 } 

@@ -18,13 +18,7 @@ public class HistoricoService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    public List<Historico> listarTodos() {
-        return historicoRepository.findAll();
-    }
 
-    public List<Historico> buscarPorEntidade(String entidade, Long entidadeId) {
-        return historicoRepository.findByEntidadeAndEntidadeIdOrderByDataHoraDesc(entidade, entidadeId);
-    }
 
     /**
      * Registra uma operação no histórico do sistema

@@ -21,7 +21,6 @@ import java.util.List;
  * 
  * <p>As funcionalidades incluem:</p>
  * <ul>
- *   <li>Listagem de todos os limites configurados</li>
  *   <li>Monitoramento de gastos vs limites</li>
  *   <li>Geração de alertas quando limites são ultrapassados</li>
  * </ul>
@@ -41,28 +40,4 @@ public class LimiteGastosController {
     @Autowired
     private LimiteGastosService limiteGastosService;
 
-    /**
-     * Lista todos os limites de gastos configurados.
-     * 
-     * @return Lista de LimiteGastosDTO contendo todos os limites configurados
-     */
-    @Operation(
-        summary = "Listar todos os limites de gastos",
-        description = "Retorna uma lista completa de todos os limites de gastos configurados " +
-                     "no sistema, incluindo valores definidos e gastos atuais para comparação."
-    )
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "Lista de limites retornada com sucesso",
-            content = @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = LimiteGastosDTO.class)
-            )
-        )
-    })
-    @GetMapping
-    public List<LimiteGastosDTO> listarTodos() {
-        return limiteGastosService.listarTodos();
-    }
 } 

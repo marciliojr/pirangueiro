@@ -253,12 +253,12 @@ public class ContaController {
     }
 
     /**
-     * Calcula o saldo de uma conta para um período específico.
+     * Calcula o saldo de uma conta específica.
      * 
      * @param id ID da conta para cálculo do saldo
-     * @param mes Mês para cálculo (opcional, se não informado considera todos)
-     * @param ano Ano para cálculo (opcional, se não informado considera todos)
-     * @return ResponseEntity contendo dados do saldo calculado
+     * @param mes Mês opcional para filtro (1-12)
+     * @param ano Ano opcional para filtro
+     * @return ResponseEntity contendo o SaldoContaDTO
      */
     @Operation(
         summary = "Calcular saldo da conta",

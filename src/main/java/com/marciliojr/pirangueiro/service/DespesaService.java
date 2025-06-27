@@ -109,12 +109,7 @@ public class DespesaService {
         }
     }
 
-    public List<DespesaDTO> buscarPorDescricaoContaCartaoData(String descricao, Long contaId, Long cartaoId, LocalDate data) {
-        return despesaRepository.buscarPorDescricaoContaCartaoData(descricao, contaId, cartaoId, data)
-                .stream()
-                .map(this::converterParaDTO)
-                .collect(Collectors.toList());
-    }
+
 
     public List<DespesaDTO> buscarDespesasPorCartaoEPeriodoFatura(Long cartaoId, int mes, int ano) {
         // Buscar o cartão para obter o dia de fechamento
@@ -171,12 +166,7 @@ public class DespesaService {
         return despesaRepository.buscarTotalDespesasNaoPagas();
     }
 
-    public void marcarDespesaComoPaga(Long despesaId) {
-        Despesa despesa = despesaRepository.findById(despesaId)
-                .orElseThrow(() -> new NegocioException("Despesa não encontrada com ID: " + despesaId));
-        despesa.setPago(true);
-        despesaRepository.save(despesa);
-    }
+
 
     private void validarLimiteCartaoDeCredito(DespesaDTO despesaDTO) {
         if (despesaDTO.getCartao() != null) {

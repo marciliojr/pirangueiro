@@ -21,8 +21,7 @@ import java.util.List;
  * <p>Este controller fornece endpoints para gerenciamento das notificações,
  * incluindo funcionalidades como:</p>
  * <ul>
- *   <li>Buscar notificações não lidas</li>
- *   <li>Marcar notificações como lidas</li>
+ *   <li>Operações administrativas de notificações</li>
  * </ul>
  * 
  * <p>As notificações são utilizadas para alertar usuários sobre eventos
@@ -43,58 +42,4 @@ public class NotificacaoController {
      */
     private final NotificacaoService notificacaoService;
 
-    /**
-     * Busca todas as notificações não lidas.
-     * 
-     * @return ResponseEntity contendo lista de notificações não lidas
-     */
-    @Operation(
-        summary = "Buscar notificações não lidas",
-        description = "Retorna uma lista de todas as notificações que ainda não foram " +
-                     "marcadas como lidas pelo usuário."
-    )
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "Notificações não lidas retornadas com sucesso",
-            content = @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = Notificacao.class)
-            )
-        )
-    })
-    @GetMapping("/nao-lidas")
-    public ResponseEntity<List<Notificacao>> buscarNotificacoesNaoLidas() {
-        return ResponseEntity.ok(notificacaoService.buscarNotificacoesNaoLidas());
-    }
-
-    /**
-     * Marca uma notificação específica como lida.
-     * 
-     * @param id ID da notificação a ser marcada como lida
-     * @return ResponseEntity vazio confirmando a operação
-     */
-    @Operation(
-        summary = "Marcar notificação como lida",
-        description = "Atualiza o status de uma notificação específica para 'lida', " +
-                     "removendo-a da lista de notificações pendentes."
-    )
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "Notificação marcada como lida com sucesso"
-        ),
-        @ApiResponse(
-            responseCode = "404",
-            description = "Notificação não encontrada",
-            content = @Content
-        )
-    })
-    @PatchMapping("/{id}/marcar-como-lida")
-    public ResponseEntity<Void> marcarComoLida(
-            @Parameter(description = "ID da notificação a ser marcada como lida", required = true)
-            @PathVariable Long id) {
-        notificacaoService.marcarComoLida(id);
-        return ResponseEntity.ok().build();
-    }
 } 
