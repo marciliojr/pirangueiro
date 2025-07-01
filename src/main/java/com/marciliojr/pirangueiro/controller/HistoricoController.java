@@ -53,12 +53,13 @@ public class HistoricoController {
     private HistoricoDTO convertToDTO(Historico historico) {
         HistoricoDTO dto = new HistoricoDTO();
         dto.setId(historico.getId());
-        dto.setTipoOperacao(historico.getTipoOperacao().toString());
+        dto.setTipoOperacao(historico.getTipoOperacao());
         dto.setEntidade(historico.getEntidade());
         dto.setEntidadeId(historico.getEntidadeId());
-        dto.setDetalhes(historico.getDetalhes());
-        dto.setDataOperacao(historico.getDataOperacao());
-        dto.setUsuarioId(historico.getUsuarioId());
+        dto.setInfo(historico.getInfo());
+        dto.setDataHora(historico.getDataHora());
+        dto.setUsuarioId(historico.getUsuario() != null ? historico.getUsuario().getId() : null);
+        dto.setUsuarioNome(historico.getUsuario() != null ? historico.getUsuario().getNome() : null);
         return dto;
     }
 } 
